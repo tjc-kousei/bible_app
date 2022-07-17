@@ -109,7 +109,7 @@ function load() {
 				chapter.appendChild(syou_button)
 			}
 			window.location.href = "#chapter1"
-			document.getElementById("Abbre").innerHTML = e.target.innerHTML
+			document.getElementById("Abbre").innerHTML = e.target.innerHTML.slice(3)
 		}
 		letter.appendChild(button)
 	})
@@ -225,6 +225,7 @@ function search() {
 				contents += `</div>`
 				setu = j
 				j++
+				document.getElementById("Abbre").innerHTML = `<mark>${keyword}</mark>の検索結果　<mark style="background:aqua">${setu}</mark>件見つかりました`
 			}
 		}
 	}
