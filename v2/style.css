@@ -1,0 +1,200 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+*::-webkit-scrollbar {
+    display: none;
+}
+body {
+    background-color: rgb(33,34,39);
+}
+header {
+    position: fixed;
+    display: flex;
+    width: 100%;
+    height: 48px;
+    background-color: rgba(23,24,29,.5);
+    place-items: center;
+    justify-content: center;
+    flex-direction: row;
+}
+header p { color: white; }
+#Abbre, #Syou { display: inline-block;}
+.sidebar {
+    position: fixed;
+    display: flex;
+    top: 47px;
+    height: 90vh;
+    transition: .5s;
+}
+.sidebar button {
+    height: 50px;
+    width: 100%;
+    background-color: black;
+    color: white;
+    animation: left-to-right 1s;
+    animation-fill-mode: both;
+    transition: .35s ease-in-out;
+    border: solid 1px white;
+}
+.letter, .chapter, .section {
+    position: absolute;
+    width: 20vw;
+    height: 100%;
+    transition: .5s;
+    overflow: scroll;
+}
+.letter {
+    left: 0px;
+}
+.chapter {
+    left: 20vw;
+}
+.section {
+    left: 40vw;
+}
+
+#output {
+    width: 100%;
+    height: 100%;
+    padding: 1em;
+}
+#output:empty {
+    display: none;
+}
+#wrapper {
+    margin: 1em;
+}
+.ch {
+    color: white;
+    border-bottom: solid 2px white;
+}
+.jp {
+    color: white;
+    margin-bottom: 5px;
+}
+#output>#wrapper:last-child>.ch {
+    border: none;
+}
+
+#check_ruby {
+    display: none;
+}
+#check_ruby_label{
+    position: fixed;
+    background-color: blue;
+    color: white;
+    top: 15px;
+    right: 55px;
+    transition: .5s;
+    border: solid 1px white;
+    border-radius: 100%;
+}
+#check_ruby_label::before {
+    content: "ON";
+}
+#check_ruby:checked ~ #check_ruby_label::before {
+    content: "OFF";
+}
+#check_ruby_label:hover, #plus>button:hover, #minus>button:hover {
+    background-color: white;
+    color: black;
+    cursor: pointer;
+}
+.closed2 {
+    opacity: 0;
+    transform: translateX(40px);
+}
+.closed2 ~ #plus { transform: translateY(-50px); }
+.closed2 ~ #minus { transform: translateY(-100px); }
+.output>#wrapper>.jp>ruby>rt { display: none; }
+#output { font-size: 1rem; }
+#plus {
+    position: fixed;
+    width: 35px;
+    height: 35px;
+    top: 55px;
+    right: 10px;
+    transition: .5s;
+}
+#plus button {
+    width: 100%;
+    height: 100%;
+    border-radius: 100%;
+    background-color: blue;
+    color: white;
+}
+#minus {
+    position: fixed;
+    width: 35px;
+    height: 35px;
+    top: 100px;
+    right: 10px;
+    transition: .5s;
+}
+#minus button {
+    width: 100%;
+    height: 100%;
+    border-radius: 100%;
+    background-color: blue;
+    color: white;
+}
+.modal {
+    display: grid;
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    place-items: center;
+    background-color: rgba(0,0,0,.8);
+    z-index: 100;
+}
+#keyword {
+    width: 80vw;
+    height: 3rem;
+    font-size: 2rem;
+    text-align: center;
+}
+#searchbox {
+    position: fixed;
+    top: 15px;
+    right: 100px;
+    background-color: rgb(88, 243, 225);
+    outline: none;
+    transition: .5s;
+}
+#searchbox>label {
+    text-align: center;
+}
+.undisplay {
+    display: none;
+}
+
+@keyframes left-to-right {
+    0% {
+        transform: scale(.8);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .letter, .chapter, .section {
+        width: 33.3vw;
+    }
+    .closed {
+        left: -33.3vw !important;
+    } 
+    .letter {
+        left: 0px;
+    }
+    .chapter {
+        left: 33.3vw;
+    }
+    .section {
+        left: 66.6vw;
+    }
+}

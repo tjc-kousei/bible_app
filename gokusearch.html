@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>語句検索</title>
+    <link rel="stylesheet" href="./search.css">
+    <link rel="stylesheet" href="./gokusearch.css">
+    <script src="search.js"></script>
+    <script src="gokusearch.js"></script>
+</head>
+<body>
+    <div id="fontSize_change"><button id="plus" onclick="fontSize_change('plus')">+</button><button id="minus" onclick="fontSize_change('minus')">-</button></div>
+    <div class="openbtn" onclick="menu()"><span></span><span></span><span></span></div>
+    <div id="navmas">
+        <input type="search" id="textbox" autofocus>
+    </div>
+    <div id="url"><a href="./search.html">聖句表示はこちら</a></div>
+    <p id="message"></p>
+    <table border="1" id="result"></table>
+</body>
+</html>

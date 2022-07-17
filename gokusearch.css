@@ -1,0 +1,12 @@
+*{ border-radius: 2px;}
+#textbox{ margin-left: 5%; font-size: 2.5em;}
+#result{ width:99%;}
+#message{text-align: center;}
+#result:empty{display: none;}
+mark{background: pink;}
+.setu,.rownumber{text-align: center; background-color: rgba(200,0,200,0.8);}
+.setu{width:5em; background-color: #b6fafc;}
+.setu:nth-child(even){background-color: #FBFDB7;}
+@media screen and (max-width: 1020px) {
+    #textbox{ font-size: 1.9em; margin-top:60px; left: 10px; margin-left:0;}
+}

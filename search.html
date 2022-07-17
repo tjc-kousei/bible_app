@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日中聖書表示アプリ</title>
+    <link rel="stylesheet" href="search.css">
+    <script src="search.js"></script>
+    <script>alert('ルビ（ふりがな）は試験的なものであり、間違いがあります。間違いがあれば製作者まで連絡ください。書簡選択の近くに「ルビ間違い報告」というボタンがあるので押してFormで教えてください！');</script>
+</head>
+<body>
+    <div id="fontSize_change"><button id="plus" onclick="fontSize_change('plus')">+</button><button id="minus" onclick="fontSize_change('minus')">-</button></div>
+    <div class="openbtn" onclick="menu()"><span></span><span></span><span></span></div>
+    <div id="navmas">
+        <form name="F" action="#">
+            <select name="ot" id="select" onchange="rule('nt')">
+                <option value="">旧約</option>
+                <option value="0">01 創世記</option>
+                <option value="1">02 出エジプト記</option>
+                <option value="2">03 レビ記</option>
+                <option value="3">04 民数記</option>
+                <option value="4">05 申命記</option>
+                <option value="5">06 ヨシュア記</option>
+                <option value="6">07 士師記</option>
+                <option value="7">08 ルツ記</option>
+                <option value="8">09 サムエル記上</option>
+                <option value="9">10 サムエル記下</option>
+                <option value="10">11 列王記上</option>
+                <option value="11">12 列王記下</option>
+                <option value="12">13 歴代志上</option>
+                <option value="13">14 歴代志下</option>
+                <option value="14">15 エズラ記</option>
+                <option value="15">16 ネヘミヤ記</option>
+                <option value="16">17 エステル記</option>
+                <option value="17">18 ヨブ記</option>
+                <option value="18">19 詩篇</option>
+                <option value="19">20 箴言</option>
+                <option value="20">21 伝道の書</option>
+                <option value="21">22 雅歌</option>
+                <option value="22">23 イザヤ書</option>
+                <option value="23">24 エレミヤ書</option>
+                <option value="24">25 哀歌</option>
+                <option value="25">26 エゼキエル書</option>
+                <option value="26">27 ダニエル書</option>
+                <option value="27">28 ホセア書</option>
+                <option value="28">29 ヨエル書</option>
+                <option value="29">30 アモス書</option>
+                <option value="30">31 オバデア書</option>
+                <option value="31">32 ヨナ書</option>
+                <option value="32">33 ミカ書</option>
+                <option value="33">34 ナホム書</option>
+                <option value="34">35 ハバクク書</option>
+                <option value="35">36 ゼパニヤ書</option>
+                <option value="36">37 ハガイ書</option>
+                <option value="37">38 ゼカリヤ書</option>
+                <option value="38">39 マラキ書</option>
+                
+            </select>
+            <select name="nt" id="select" onchange="rule('ot')">
+                <option value="">新約</option>
+                <option value="39">40 マタイによる福音書</option>
+                <option value="40">41 マルコによる福音書</option>
+                <option value="41">42 ルカによる福音書</option>
+                <option value="42">43 ヨハネによる福音書</option>
+                <option value="43">44 使徒行伝</option>
+                <option value="44">45 ローマ人への手紙</option>
+                <option value="45">46 コリント人への第一の手紙</option>
+                <option value="46">47 コリント人への第二の手紙</option>
+                <option value="47">48 ガラテヤ人への手紙</option>
+                <option value="48">49 エペソ人への手紙</option>
+                <option value="49">50 ピリピ人への手紙</option>
+                <option value="50">51 コロサイ人への手紙</option>
+                <option value="51">52 テサロニケ人への第一の手紙</option>
+                <option value="52">53 テサロニケ人への第二の手紙</option>
+                <option value="53">54 テモテへの第一の手紙</option>
+                <option value="54">55 テモテへの第二の手紙</option>
+                <option value="55">56 テトスへの手紙</option>
+                <option value="56">57 ピレモンへの手紙</option>
+                <option value="57">58 ヘブル人への手紙</option>
+                <option value="58">59 ヤコブの手紙</option>
+                <option value="59">60 ペテロの第一の手紙</option>
+                <option value="60">61 ペテロの第二の手紙</option>
+                <option value="61">62 ヨハネの第一の手紙</option>
+                <option value="62">63 ヨハネの第二の手紙</option>
+                <option value="63">64 ヨハネの第三の手紙</option>
+                <option value="64">65 ユダの手紙</option>
+                <option value="65">66 ヨハネの黙示録
+            </select>
+        </form>
+        <button onclick="form_hidden()" style="margin-left:5%;">ルビ間違い報告</button>
+        <button onclick="ruby_toggle()">ルビ切り替え</button>
+        <div id="nav"></div>
+    </div>
+    <div id="url"><a href="./gokusearch.html">語句検索</a></div>
+    <div id="title"></div>
+    <div id="houkoku" style="display: none;">
+        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSf6umaI7YYkR13ZO4sIrUIQmZ_ldguGQFK-IKeFh5B5ERJdog/viewform?embedded=true" width="100%" height="408" frameborder="0" marginheight="0" marginwidth="0">読み込んでいます…</iframe>
+    </div>
+    <div id="table" hidden></div>
+</body>
+</html>

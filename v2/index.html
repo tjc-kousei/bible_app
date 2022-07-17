@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聖書閲覧アプリ</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="menu.css">
+    <link rel="shortcut icon" href="../bible.png" type="image/x-icon">
+</head>
+<body>
+    <header>
+        <p id="Abbre"></p>
+        <p id="syou"></p>
+    </header>
+    <main>
+        <div id="output"></div>
+    </main>
+    <section>
+        <div class="sidebar">
+            <div class="section">
+            </div>
+            <div class="chapter">
+            </div>
+            <div class="letter">
+            </div>
+            <div class="Toggle active" id="humbarger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        <div id="wrap_load">
+            <div class="sk-circle">
+                <div class="sk-circle1 sk-child"></div>
+                <div class="sk-circle2 sk-child"></div>
+                <div class="sk-circle3 sk-child"></div>
+                <div class="sk-circle4 sk-child"></div>
+                <div class="sk-circle5 sk-child"></div>
+                <div class="sk-circle6 sk-child"></div>
+                <div class="sk-circle7 sk-child"></div>
+                <div class="sk-circle8 sk-child"></div>
+                <div class="sk-circle9 sk-child"></div>
+                <div class="sk-circle10 sk-child"></div>
+                <div class="sk-circle11 sk-child"></div>
+                <div class="sk-circle12 sk-child"></div>
+              </div>
+        </div>
+    </section>
+    
+    <div class="Toggle2 active2" accesskey="m">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <input type="checkbox" id="check_ruby" checked>
+    <label for="check_ruby" id="check_ruby_label"></label>
+    <div id="plus"><button onclick="letterchange('plus')">&plus;</button></div>
+    <div id="minus"><button onclick="letterchange('minus')">&minus;</button></div>
+    
+    <button id="searchbox" onclick="searchbox()"><label for="searchbox" accesskey="s">検索</label></button>
+    <div class="modal undisplay">
+        <input type="search" id="keyword" placeholder="語句検索" autofocus autocomplete="off">
+    </div>
+
+    <script src="./script.js"></script>
+</body>
+</html>
