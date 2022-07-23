@@ -78,7 +78,8 @@ function load() {
 						if(bible_data[n][3].includes(pattern)) {
 							contents += `<div id="wrapper">`
 							contents += `<div id="${j}" style="color:white;">${j}</div>`
-							contents += `<div id="jp${j}" class="jp">${bible_data[n][5]}</div>`
+							if(check_ruby.checked) contents += `<div id="jp${j}" class="jp">${bible_data[n][5]}</div>`
+							else contents += `<div id="jp${j}" class="jp">${bible_data[n][4]}</div>`
 							contents += `<div id="ch${j}" class="ch">${bible_data[n][2]}</div>`
 							contents += `</div>`
 							setu = j
