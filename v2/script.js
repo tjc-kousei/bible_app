@@ -43,7 +43,7 @@ function load() {
 		button.onclick = (e) => {
 			parent = e.target.parentElement.childNodes
 			parent.forEach((value,index) => {
-				if( index == 0 ) return
+				// if( index == 0 ) return
 				value.style.backgroundColor = ""
 			})
 			e.target.style.backgroundColor = "red"
@@ -63,7 +63,7 @@ function load() {
 				syou_button.onclick = (e) => {
 					parent = e.target.parentElement.childNodes
 					parent.forEach((value,index) => {
-						if( index == 0 ) return
+						// if( index == 0 ) return
 						value.style.backgroundColor = ""
 					})
 					e.target.style.backgroundColor = "red"
