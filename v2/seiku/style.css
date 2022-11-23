@@ -2,6 +2,9 @@
     margin: 0;
     padding: 0;
 }
+*>::-webkit-scrollbar {
+    display: none;
+}
 body {
     background-color: black;
 }
@@ -20,7 +23,7 @@ body {
 
 #result {
     width: 100vw;
-    height: 100vh;
+    height: 100%;
     position: fixed;
     display: flex;
     flex-direction: column;
@@ -30,4 +33,14 @@ body {
     color: white;
     margin: 0 auto;
     font-size: 1.5rem;
+}
+.jp {
+    border-bottom: 5px solid red;
+    color: skyblue;
+}
+.ch {
+    color: yellowgreen;
+}
+.ch, .jp{
+    overflow: scroll;
 }
