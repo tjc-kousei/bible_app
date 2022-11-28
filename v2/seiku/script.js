@@ -40,7 +40,7 @@ document.addEventListener('keydown', event => {
 function search() {
     input = document.querySelector("input")
     value = input.value
-    value = value.replace(/[〜~]/g,',').split(',')
+    value = value.replace(/[～〜~]/g,',').split(',')
     keyword = value[0]
     console.log(value)
     
