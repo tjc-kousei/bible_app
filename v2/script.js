@@ -188,7 +188,11 @@ document.addEventListener('keydown', event => {
 	}
 	if( event.key=="+" || event.key==";" ) document.getElementById("plus").childNodes[0].click()
 	if( event.key=="-" || event.key=="=" ) document.getElementById("minus").childNodes[0].click()
-	if( event.key=="Enter"){ search() }
+	if( !document.querySelector(".modal").classList.contains("undisplay") && event.key=="Enter"){ search() }
+	if( document.querySelector(".modal").classList.contains("undisplay") && event.ctrlKey === true && event.key=="s" || event.key=="S" ){
+		document.getElementById("searchbox").click()
+	}
+	return false
 })
 
 function handle(event) {
@@ -223,11 +227,12 @@ function searchbox() {
 	if(document.querySelector(".Toggle").classList.contains("active")) document.querySelector(".Toggle").click()
 	const modal = document.querySelector(".modal")
 	modal.classList.toggle("undisplay")
+	document.getElementById("keyword").focus()
 	modal.onclick = (e) => {
 		if(e.target==modal) modal.classList.toggle("undisplay")
 	}
-	document.getElementById("keyword").focus()
 }
+
 function search() {	
 	if(document.querySelector(".Toggle").classList.contains("active")) document.querySelector(".Toggle").click()
 	let keyword = document.getElementById("keyword").value
