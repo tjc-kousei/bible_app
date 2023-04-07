@@ -4,6 +4,7 @@ const section = document.querySelector(".section");
 const html = document.getElementsByTagName("html");
 const main = document.getElementsByTagName("main");
 const sec = document.getElementsByTagName("section");
+let letter_size = 1.0;
 
 function getCSV(){
     var req = new XMLHttpRequest(); // HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
@@ -128,9 +129,8 @@ document.querySelector(".Toggle").addEventListener('click',(e)=> {
 document.querySelector(".Toggle2").addEventListener('click',(e)=> {
 	document.querySelector(".Toggle2").classList.toggle("active2");
 	document.getElementById("check_ruby_label").classList.toggle("closed2");
-	document.getElementById("plus").classList.toggle("closed2");
-	document.getElementById("minus").classList.toggle("closed2");
 	document.getElementById("searchbox").classList.toggle("closed2");
+	document.getElementById("change_font-size").classList.toggle("closed2");
 })
 
 const check_ruby = document.getElementById("check_ruby");
@@ -180,8 +180,16 @@ document.addEventListener('keydown', event => {
 		if( document.querySelector(".modal").classList.contains("undisplay") );
 		document.querySelector(".Toggle").click();
 	}
-	if( event.key=="+" || event.key==";" ) document.getElementById("plus").childNodes[0].click();
-	if( event.key=="-" || event.key=="=" ) document.getElementById("minus").childNodes[0].click();
+	if( event.key=="+" || event.key==";" ) {
+		letter_size += 0.06;
+		document.getElementById("change_font-size").value = letter_size;
+		letterchange();
+	}
+	if( event.key=="-" || event.key=="=" ) {
+		letter_size -= 0.06;
+		document.getElementById("change_font-size").value = letter_size;
+		letterchange();
+	}
 	if( !document.querySelector(".modal").classList.contains("undisplay") && event.key=="Enter"){ search(); }
 	if( document.querySelector(".modal").classList.contains("undisplay") && event.ctrlKey === true && event.key=="s" || event.key=="S" ){
 		document.getElementById("searchbox").click();
@@ -205,16 +213,9 @@ function hoge(elm) {
 	} catch(e) { console.log(e) }('mousewheel', handle, { passive: false });
 }
 
-var letter_size = 1;
-function letterchange(opt) {
-	if( opt=="plus") {
-		letter_size+=0.06;
-		console.log(letter_size)
-		document.getElementById("output").style.fontSize = letter_size + "rem";
-	} else {
-		letter_size-=0.06;
-		document.getElementById("output").style.fontSize = letter_size + "rem";
-	}
+function letterchange() {
+	if(letter_size>2.5) letter_size = 2.5;
+	document.getElementById("output").style.fontSize = letter_size + "rem";
 }
 
 function searchbox() {
@@ -230,12 +231,11 @@ function searchbox() {
 function search() {	
 	if(document.querySelector(".Toggle").classList.contains("active")) document.querySelector(".Toggle").click();
 	let keyword = document.getElementById("keyword").value;
-	
-	console.log(keyword.split(",")) //テスト終了後に削除
-
 	let contents = "";
+	let keywords = keyword.split("　");
+	if(keywords.length == 1) keywords = keyword.split(" ");
 
-	if(keyword.split("　").length == 1) { //検索ワードが一つのみ
+	if(keywords.length == 1) { //検索ワードが一つのみ
 		const pattern = keyword
 		let setu = "";
 		if(keyword.replace(/[\s\t\n]/g, "")!='') { 
@@ -258,7 +258,7 @@ function search() {
 		}
 	}
 	else { //検索ワードが複数の場合 [ , ] で区切る
-		const pattern = keyword.split("　");
+		const pattern = keywords;
 		let hit = "";
 
 		document.getElementById("Abbre").innerHTML = "";

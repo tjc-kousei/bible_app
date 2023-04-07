@@ -9,6 +9,25 @@
 body {
     background-color: rgb(33,34,39);
 }
+main {
+    min-height: 90vh;
+}
+footer{
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    color: white;
+}
+footer p {
+    text-align: center;
+}
+footer details {
+    border: 1px solid #ccc;
+}
+footer details iframe {
+    width: 100%;
+    height: 90vh;
+}
 header {
     position: fixed;
     display: flex;
@@ -97,6 +116,19 @@ header p { color: white; }
 #check_ruby:checked ~ #check_ruby_label::before {
     content: "OFF";
 }
+
+/* 文字サイズ変更用縦スライダー */
+#change_font-size {
+    position: fixed;
+    top: 130px;
+    right: -40px;
+    transform: rotate(-0.25turn);
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: aqua;
+    border-radius: 10px;
+}
+
 #check_ruby_label:hover, #plus>button:hover, #minus>button:hover {
     background-color: white;
     color: black;
@@ -106,40 +138,7 @@ header p { color: white; }
     opacity: 0;
     transform: translateX(40px);
 }
-.closed2 ~ #plus { transform: translateY(-50px); }
-.closed2 ~ #minus { transform: translateY(-100px); }
-.output>#wrapper>.jp>ruby>rt { display: none; }
-#output { font-size: 1rem; }
-#plus {
-    position: fixed;
-    width: 35px;
-    height: 35px;
-    top: 55px;
-    right: 10px;
-    transition: .5s;
-}
-#plus button {
-    width: 100%;
-    height: 100%;
-    border-radius: 100%;
-    background-color: blue;
-    color: white;
-}
-#minus {
-    position: fixed;
-    width: 35px;
-    height: 35px;
-    top: 100px;
-    right: 10px;
-    transition: .5s;
-}
-#minus button {
-    width: 100%;
-    height: 100%;
-    border-radius: 100%;
-    background-color: blue;
-    color: white;
-}
+
 .modal {
     display: grid;
     position: fixed;

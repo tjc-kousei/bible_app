@@ -40,14 +40,30 @@
     </div>
     <input type="checkbox" id="check_ruby" checked>
     <label for="check_ruby" id="check_ruby_label"></label>
-    <div id="plus"><button onclick="letterchange('plus')">&plus;</button></div>
-    <div id="minus"><button onclick="letterchange('minus')">&minus;</button></div>
+    <input type="range" id="change_font-size" min="0.5" max="2.5" step="0.06" value="1.0" oninput="letter_size = Number(this.value); letterchange();">
     
     <button id="searchbox" onclick="searchbox()"><label for="searchbox" accesskey="s">検索</label></button>
     <div class="modal undisplay">
         <input type="search" id="keyword" placeholder="語句検索" autocomplete="off">
     </div>
     
+    <footer>
+        <details>
+            <summary>ルビ（ふりがな）間違報告フォーム</summary>
+            <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSf6umaI7YYkR13ZO4sIrUIQmZ_ldguGQFK-IKeFh5B5ERJdog/viewform?embedded=true" width="640" height="90vh" frameborder="0" marginheight="0" marginwidth="0">読み込んでいます…</iframe>
+        </details>
+        <details>
+            <summary>お知らせ</summary>
+
+        </details>
+        <details>
+            <summary>更新ログ</summary>
+            <p>2023/04/07 文字サイズ変更をボタンからスライダーに変更</p>
+            <p>2023/04/07 footer追加しルビ間違い報告フォームとお知らせと更新ログを追加</p>
+        </details>
+        <p>Copyright (C) 2022 Kousei.H All Rights Reserved.</p>
+    </footer>
+
     <script src="./script.js"></script>
 </body>
 </html>
