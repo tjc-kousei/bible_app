@@ -300,6 +300,38 @@ function search() {
 	modal.classList.toggle("undisplay");
 }
 
+// 要望送信
+function request() {
+	let URL = "https://script.google.com/macros/s/AKfycbzJD_9OJXm0T19SwzYAO74hZVgfivQLynOcXiSuKSu_ilYfWZkUEoVw0P5MX7BGZNpuUg/exec";
+	let msg = document.getElementById("request").value;
+
+	let SendDATA = {
+		message : msg
+	};
+
+	let postparam = 
+		{
+			"method"     : "POST",
+			"mode"       : "no-cors",
+			"Content-Type" : "application/x-www-form-urlencoded",
+			"body" : JSON.stringify(SendDATA)
+		};
+
+	if(msg!="") {
+		fetch(URL, postparam);
+		const footer = document.querySelector(".request_form");
+		const div = document.createElement("div");
+		div.id = "log";
+		div.innerHTML = "要望内容【" + msg + "】 を送信しました。";
+		footer.appendChild(div);
+	}
+	setTimeout( ()=> {
+		document.getElementById("log").remove();
+		document.getElementById("request").value = "";
+	}, 1500);
+
+}
+
 //事前に記憶しておく配列
 let syou =  ["50", "40", "27", "36", "34", "24", "21", "4", "31", "24", "22", "25", "29", "36", "10", "13", "10", "42", "150", "31", "12", "8", "66", "52", "5", "48", "12", "14", "3", "9", "1", "4", "7", "3", "3", "3", "2", "14", "4", "28", "16", "24", "21", "28", "16", "16", "13", "6", "6", "4", "4", "5", "3", "6", "4", "3", "1", "13", "5", "5", "3", "5", "1", "1", "1", "22"];
 let Abbre = ["創", "出エジ", "レビ", "民", "申", "ヨシュ", "士", "ルツ", "サム上", "サム下", "列王上", "列王下", "歴代上", "歴代下", "エズ", "ネヘ", "エス", "ヨブ", "詩", "箴", "伝", "雅", "イザ", "エレ", "哀", "エゼ", "ダニ", "ホセ", "ヨエ", "アモ", "オバ", "ヨナ", "ミカ", "ナホ", "ハバ", "ゼパ", "ハガ", "ゼカ", "マラ", "マタ", "マル", "ルカ", "ヨハ", "使徒", "ロマ", "Ⅰコリ", "Ⅱコリ", "ガラ", "エペ", "ピリ", "コロ", "Ⅰテサ", "Ⅱテサ", "Ⅰテモ", "Ⅱテモ", "テト", "ピレ", "ヘブ", "ヤコ", "Ⅰペテ", "Ⅱペテ", "Ⅰヨハ", "Ⅱヨハ", "Ⅲヨハ", "ユダ", "黙"];

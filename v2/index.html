@@ -47,19 +47,24 @@
         <input type="search" id="keyword" placeholder="語句検索" autocomplete="off">
     </div>
     
-    <footer>
+    <footer id="footer">
         <details>
             <summary>ルビ（ふりがな）間違報告フォーム</summary>
             <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSf6umaI7YYkR13ZO4sIrUIQmZ_ldguGQFK-IKeFh5B5ERJdog/viewform?embedded=true" width="640" height="90vh" frameborder="0" marginheight="0" marginwidth="0">読み込んでいます…</iframe>
         </details>
+        <details class="request_form">
+            <summary>要望フォーム</summary>
+            <textarea name="request" id="request" cols="30" rows="10" placeholder="ここに要望内容を記入してください"></textarea>
+            <input type="button" value="送信" onclick="request();">
+        </details>
         <details>
             <summary>お知らせ</summary>
-
         </details>
         <details>
             <summary>更新ログ</summary>
             <p>2023/04/07 文字サイズ変更をボタンからスライダーに変更</p>
             <p>2023/04/07 footer追加しルビ間違い報告フォームとお知らせと更新ログを追加</p>
+            <p>2023/04/08 要望フォームを追加</p>
         </details>
         <p>Copyright (C) 2022 Kousei.H All Rights Reserved.</p>
     </footer>
