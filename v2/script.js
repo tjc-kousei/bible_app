@@ -42,7 +42,6 @@ function load() {
 		button.onclick = (e) => {
 			parent = e.target.parentElement.childNodes;
 			parent.forEach((value,index) => {
-				// if( index == 0 ) return
 				value.style.backgroundColor = "";
 			})
 			e.target.style.backgroundColor = "red"
@@ -106,6 +105,7 @@ function load() {
 						section.appendChild(setu_button);
 					}
 					window.location.href = "#section1";
+					document.title = names[index].slice(3) + e.target.innerHTML + "章";
 					document.getElementById("syou").innerHTML = "&nbsp;"+e.target.innerHTML+"章";
 				}
 				chapter.appendChild(syou_button);
@@ -236,7 +236,8 @@ function search() {
 	if(keywords.length == 1) keywords = keyword.split(" ");
 
 	if(keywords.length == 1) { //検索ワードが一つのみ
-		const pattern = keyword
+		const pattern = keyword;
+		document.title = "【" + pattern + "】の検索結果";
 		let setu = "";
 		if(keyword.replace(/[\s\t\n]/g, "")!='') { 
 			document.getElementById("Abbre").innerHTML = "";
@@ -260,7 +261,7 @@ function search() {
 	else { //検索ワードが複数の場合 [ , ] で区切る
 		const pattern = keywords;
 		let hit = "";
-
+		document.title = "【" + pattern + "】の検索結果";
 		document.getElementById("Abbre").innerHTML = "";
 		document.getElementById("syou").innerHTML = "";
 		for( let n=1, j=1; n<=31103; n++ ){
