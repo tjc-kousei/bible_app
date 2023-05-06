@@ -168,15 +168,18 @@ footer{
     justify-content: end;
     color: white;
 }
-footer p {
-    text-align: center;
-}
 footer details {
     border: 1px solid #ccc;
     text-align: center;
 }
 footer details summary {
     text-align: left;
+}
+footer details table{
+    width: 100%;
+}
+footer details table td.date{
+    vertical-align: top;
 }
 footer details iframe {
     width: 100%;
