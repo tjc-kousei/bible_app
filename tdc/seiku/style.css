@@ -1,0 +1,46 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+*>::-webkit-scrollbar {
+    display: none;
+}
+body {
+    background-color: black;
+}
+#searchbox {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    display: grid;
+    place-items: center;
+}
+#searchbox>input {
+    width: 80%;
+    height: 3rem;
+    font-size: 2rem;
+}
+
+#result {
+    width: 100vw;
+    height: 100%;
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.ch, .jp ,#place{
+    color: white;
+    margin: 0 auto;
+    font-size: 1.5rem;
+}
+.jp {
+    border-bottom: 5px solid red;
+    color: skyblue;
+}
+.ch {
+    color: yellowgreen;
+}
+.ch, .jp{
+    overflow: scroll;
+}
