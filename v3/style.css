@@ -1,0 +1,89 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+*::-webkit-scrollbar {
+    display: none;
+}
+
+body {
+    background-color: rgb(33,34,39);
+    color: #fff;
+}
+#result {
+    height: 100%;
+    padding-top: 1.5em;
+}
+
+#abbre {
+    position: fixed;
+    width: 2em;
+    height: 1.5em;
+    top: 0px;
+    left: 0px;
+    text-align: center;
+}
+#syou {
+    position: fixed;
+    width: 3em;
+    height: 1.5em;
+    top: 0px;
+    left: 2em;
+    text-align: center;
+}
+
+/* 書簡リストのスタイル */
+#abbre:focus + #list{
+    display: block;
+}
+#list {
+    width: 100vw;
+    display: flex;
+    flex-direction: column; 
+    position: fixed;
+    top: 2em;
+    display: none;
+    background-color: black;
+}
+#list div {
+    display: flex;
+    flex-wrap: wrap;
+    border: blueviolet .1px solid;
+    padding: 6px 0;
+}
+#list div p {
+    border: yellow .1px solid;
+    width: 13%;   
+}
+
+/* 出力した内容のスタイル */
+.wrapper {
+    margin: 1em;
+}
+.ch {
+    color: white;
+    border-bottom: solid 2px white;
+}
+.jp {
+    color: white;
+    margin-bottom: 5px;
+}
+
+/* 検索モーダルのスタイル */
+#search_modal { 
+    display: none;
+    position: fixed;
+    top: 0px;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgb(20,0,0);
+}
+#search_modal input[type="text"] {
+    height: 1.5em;
+    background-color: yellow;
+}
+#search_modal #search_result {
+    height: 90%;
+    overflow: scroll;
+}
