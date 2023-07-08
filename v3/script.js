@@ -158,6 +158,14 @@ function search( option, text ) {
 	}
 }
 
+// 検索ボックス表示
+function key_s() {
+	const modal = document.getElementById("search_modal");
+	modal.style.display = "block";
+	document.querySelector("#search_text").focus();
+	document.querySelector("#search_text").select();
+}
+
 const bible_data = getCSV("../Data(hira).csv");
 display();
 
@@ -181,10 +189,7 @@ document.addEventListener( "keydown", (e) => {
 
 	// コントロール＋S
 	if( e.ctrlKey === true && e.key=="s" || e.key=="S" ) {
-		const modal = document.getElementById("search_modal");
-		modal.style.display = "block";
-		document.querySelector("#search_text").focus();
-		document.querySelector("#search_text").select();
+		key_s();
 	}
 })
 
