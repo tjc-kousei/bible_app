@@ -51,7 +51,7 @@ function display() {
 				for( let n = 1, j = 1; n < 31104; n++ ) {
 					if( bible_data[n][3].match( new RegExp( "^" + Abbre[num.value-1	] + index + ":" ) ) != null ) {
 						data += `<div class="wrapper">`;
-						data += `<div class="specific" style="color:white;">${j}</div>`;
+						data += (j % 2 != 0) ? `<div class="specific" style="color:skyblue;">${j}</div>` : `<div class="specific" style="color:yellowgreen;">${j}</div>`;
 						data += `<div class="jp">${bible_data[n][4]}</div>`;
 						data += `<div class="ch">${bible_data[n][2]}</div>`;
 						data += `</div>`;
@@ -59,7 +59,7 @@ function display() {
 						j++;
 					}
 				}
-				if( num.value != "" && syou.value != "") log.innerHTML = names[num.value] + syou.value + "章";
+				if( num.value != "" && syou.value != "") log.innerHTML = names[num.value-1].substring(3) + " " + syou.value + "章";
 				result.innerHTML = data;
 				// 文字の大きさを調整する
 				setStrSize();
@@ -206,6 +206,7 @@ function enter() {
 
 	// テキストボックスからカーソルを外す
 	document.getElementById("search_text").blur();
+	document.title = "【" + text + "】の検索結果";
 }
 
 const bible_data = getCSV("../Data(hira).csv");
@@ -226,7 +227,7 @@ document.addEventListener( "keydown", (e) => {
 			else if ( document.activeElement == syou ) syou.blur();
 			else if( document.activeElement != num &&  document.activeElement != syou ) num.focus();
 		}
-
+		document.title = "聖書閲覧アプリ V3";
 	}
 
 	// +ボタン
@@ -243,5 +244,8 @@ document.addEventListener( "keydown", (e) => {
 
 document.addEventListener( "keyup" , (e) => {
 	// @で反応
-	if( e.key=="@" || e.key=="`" ) key_s();
+	if( e.key=="@" || e.key=="`" ){
+		key_s();
+		document.title = "検索機能";
+	}
 })

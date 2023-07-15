@@ -69,12 +69,14 @@ input[type="text"]:focus {
     }
     #list div p {
         border: yellow .1px solid;
-        width: 13%;   
+        width: 20%;
+        font-size: 1.44em;
+        padding-left: .7em;
     }
 
 /* 出力した内容のスタイル */
     .wrapper {
-        margin: 1em;
+        margin: .5em 1em 1em;
     }
     .ch {
         color: white;
