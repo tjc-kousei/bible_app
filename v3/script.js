@@ -170,16 +170,10 @@ function search( option, text ) {
 		let selectrange = document.createRange();
 
 		// 選択範囲を設定する（引数に選択状態にする要素を指定）
-		selectrange.selectNode( document.querySelector(".jp") );
+		selectrange.selectNodeContents( document.querySelector(".jp") );
 
-		// ユーザーの選択状態を得る
-		let selection = document.getSelection();
-
-		// 現在の選択状態を解除する
-		selection.removeAllRanges();
-
-		// 対象要素を選択状態にする
-		selection.addRange(selectrange);
+		// 選択状態にする
+		window.getSelection().addRange(selectrange);
 	}
 
 	// 文字の大きさを調整する
