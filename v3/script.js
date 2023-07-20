@@ -175,7 +175,6 @@ function search( option, text ) {
 		// 選択状態にする
 		window.getSelection().removeAllRanges();
 		window.getSelection().addRange(selectrange);
-		alert(selectrange);
 	}
 
 	// 文字の大きさを調整する
