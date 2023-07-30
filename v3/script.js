@@ -149,7 +149,7 @@ function search( option, text ) {
 			}
 			contents += `<div class="wrapper">`;
 			contents += `<div  class="specific" style="color:white; border:dotted 1px white; display:inline-block">${value[0]}~${value[1]}</div>`;
-			contents += `<div class="jp" style="border-bottom: 5px solid red; color: skyblue;">${japanese}</div>`;
+			contents += `<div class="jp" id="range_ja" style="border-bottom: 5px solid red; color: skyblue;">${japanese}</div>`;
 			contents += `<div class="ch" style="color: yellowgreen;">${chinese}</div></div>`;
 		}else {
 			if(keyword.replace(/[\s\t\n]/g, "")!='') { 
@@ -157,7 +157,7 @@ function search( option, text ) {
 					if(bible_data[n][1] === pattern || bible_data[n][2] === pattern || bible_data[n][3] === pattern || bible_data[n][4] === pattern) {
 						contents += `<div class="wrapper">`;
 						contents += `<div  class="specific" style="color:white; border:dotted 1px white; display:inline-block">${bible_data[n][3]}</div>`;
-						contents += `<div class="jp" style="border-bottom: 5px solid red; color: skyblue;">${bible_data[n][4].replace(keyword,`<mark>${keyword}</mark>`)}</div>`;
+						contents += `<div class="jp" id="range_ja" style="border-bottom: 5px solid red; color: skyblue;">${bible_data[n][4].replace(keyword,`<mark>${keyword}</mark>`)}</div>`;
 						contents += `<div class="ch" style="color: yellowgreen;">${bible_data[n][2].replace(keyword,`<mark>${keyword}</mark>`)}</div></div>`;
 					}
 				}
@@ -170,7 +170,7 @@ function search( option, text ) {
 		let selectrange = document.createRange();
 
 		// 選択範囲を設定する（引数に選択状態にする要素を指定）
-		selectrange.selectNodeContents( document.querySelector(".jp") );
+		selectrange.selectNodeContents( document.getElementById("range_ja") );
 
 		// 選択状態にする
 		window.getSelection().removeAllRanges();
@@ -201,6 +201,7 @@ function key_r() {
 
 // 予測変換等終了後のEnterイベント
 function enter() {
+	console.log(window.focus());
 	const text = document.getElementById("search_text").value;
 	const option = document.getElementsByName("option");
 	
