@@ -111,3 +111,14 @@ input[type="text"]:focus {
         height: 95%;
         overflow: scroll;
     }
+
+@media (max-width: 635px) {
+    #list div p {
+        font-size: 1.2em;
+    }
+}
+@media (max-width: 520px) {
+    #list div p {
+        font-size: 1em;
+    }
+}
