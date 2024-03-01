@@ -73,30 +73,28 @@ function search( option, text ) {
 	document.getElementById("log").innerHTML = "";
 	if( option == 1 ) {
 		let contents = "";
-		let keywords = text.split("　");
+		let keywords = text.split(/\s/);
 		
-		if(text.replace(/[\s\t\n]/g, "")!='') { 
-			if(keywords.length == 1) keywords = text.split(" ");
+		if(text.replace(/[\s\t\n]/g, "") != '') {
 			if(keywords.length == 1) { //検索ワードが一つのみ
 				const pattern = text;
 				let setu = "";
-				if(text.replace(/[\s\t\n]/g, "")!='') {
-					for( let n = 1, j = 1; n <= 31103; n++ ){
-						if(bible_data[n][2].includes(pattern) || bible_data[n][4].includes(pattern)) {
-							contents += `<div class="wrapper">`;
-							contents += `<div  class="specific" style="color:white; border:dotted 1px white; display:inline-block">${bible_data[n][3]}</div>`;
-							contents += `<div class="jp">${bible_data[n][4].replace(text,`<mark>${text}</mark>`)}</div>`;
-							contents += `<div class="ch">${bible_data[n][2].replace(text,`<mark>${text}</mark>`)}</div>`;
-							contents += `</div>`;
-							setu = j++;
-							document.getElementById("log").innerHTML = `<mark style="background:aqua">${setu}</mark>件見つかりました`;
-						}
+				for( let n = 1, j = 1; n <= 31103; n++ ){
+					if(bible_data[n][2].includes(pattern) || bible_data[n][4].includes(pattern)) {
+						contents += `<div class="wrapper">`;
+						contents += `<div  class="specific" style="color:white; border:dotted 1px white; display:inline-block">${bible_data[n][3]}</div>`;
+						contents += `<div class="jp">${bible_data[n][4].replace(text,`<mark>${text}</mark>`)}</div>`;
+						contents += `<div class="ch">${bible_data[n][2].replace(text,`<mark>${text}</mark>`)}</div>`;
+						contents += `</div>`;
+						setu = j++;
+						document.getElementById("log").innerHTML = `<mark style="background:aqua">${setu}</mark>件見つかりました`;
 					}
 				}
 			}
 			else { //検索ワードが複数の場合 [ , ] で区切る
 				const pattern = keywords;
-				let hit = "";for( let n=1, j=1; n<=31103; n++ ){
+				let hit = "";
+				for( let n=1, j=1; n<=31103; n++ ){
 					let check_flag = true;
 					let chinese  = bible_data[n][2];
 					let japanese = bible_data[n][4];
@@ -127,7 +125,7 @@ function search( option, text ) {
 		document.getElementById("search_result").innerHTML = contents;
 	}
 	if( option == 2 ) {
-		let value = text.replace(/[～〜~]/g,',').split(',');
+		let value = text.replace(/[～〜~\s]/g,',').split(',');
 		keyword = value[0];
 		contents = "";
 		pattern = keyword;
@@ -201,7 +199,6 @@ function key_r() {
 
 // 予測変換等終了後のEnterイベント
 function enter() {
-	console.log(window.focus());
 	const text = document.getElementById("search_text").value;
 	const option = document.getElementsByName("option");
 	
@@ -250,12 +247,23 @@ document.addEventListener( "keydown", (e) => {
 
 document.addEventListener( "keyup" , (e) => {
 	// @で反応
-	if( e.key=="@" || e.key=="`" ){
+	// console.log("BracketLeft",e.code == "BracketLeft")
+	// console.log("BracketRight",e.code == "BracketRight")
+	// テスト版
+	if( e.code == "BracketLeft" ){
 		key_s();
 		document.title = "検索機能";
 	}
-	if( e.key=="[" || e.key=="{" ){
+	if( e.code == "BracketRight" ){
 		key_r();
 		document.title = "節範囲表示";
 	}
+	// if( e.key=="@" || e.key=="`" ){
+	// 	key_s();
+	// 	document.title = "検索機能";
+	// }
+	// if( e.key=="[" || e.key=="{" ){
+	// 	key_r();
+	// 	document.title = "節範囲表示";
+	// }
 })
