@@ -1,0 +1,179 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+* ::-webkit-scrollbar{
+    display: none;
+}
+
+html {
+    overflow-x: hidden;
+}
+body {
+    background-color: black;
+    color: white;
+    width: 100vw;
+    height: 100dvh;
+}
+#result {
+    height: calc(100% - 40px);
+    width: 100%;
+    color: white;
+    overflow: scroll;
+}
+
+/* モーダル */
+#modal {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100dvh;
+    background-color: black;
+    top: 0;
+    left: -150%;
+}
+#menu {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    top: -15px;
+    right: 20px;
+    font-size: 60px;
+    cursor: pointer;
+}
+.closewrap {
+    height: 60px;
+    width: 100%;;
+    background-color: black;
+    position: relative;
+}
+.closewrap #log {
+    height: 100%;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.close {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    top: -15px;
+    left: 5px;
+    font-size: 60px;
+    cursor: pointer;
+}
+.back {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    top: -10px;
+    left: 40px;
+    font-size: 60px;
+    cursor: pointer;
+}
+#fontchange {
+    margin-top: 10px;
+    margin-right: 40px;
+    width: calc(100% - 40px);
+}
+#yaku {
+    display: flex;
+    height: 40px;
+    background-color: white;
+}
+#yaku #ot, #yaku #nt {
+    width: 50%;
+    height: 40px;
+    color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: gray solid 1px;
+    cursor: pointer;
+}
+#lang {
+    display: flex;
+    height: 40px;
+    background-color: white;
+}
+#lang #japanese, #lang #chinese {
+    width: 50%;
+    height: 40px;
+    color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: gray solid 1px;
+    cursor: pointer;
+}
+#abbre {
+    height: calc(100% - 120px);
+    overflow: scroll;
+}
+.looking {
+    background-color: yellow !important;
+    z-index: 10 !important;
+}
+.abbre_button {
+    height: 40px;
+    width: 100%;
+}
+
+/* 章の表示 */
+#modal_syou {
+    position: fixed;
+    top: 0;
+    left: -150%;
+    height: 100%;
+    width: 100vw;
+    background-color: black;
+}
+#modal_syou_content {
+    height: calc(100% - 40px);
+    width: 100%;
+    overflow: scroll;
+}
+#modal_syou_content button {
+    height: 40px;
+    width: 100%;
+}
+
+/* メニュー */
+#modal_menu {
+    position: fixed;
+    top: 0;
+    right: -150%;
+    height: 100%;
+    width: 100vw;
+    background-color: rgba(0,0,0,.5);
+}
+.menu_close {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    top: -15px;
+    right: -2px;
+    font-size: 60px;
+    cursor: pointer;
+}
+
+#modal_menu *:not(.closewrap) {
+    text-align: center;
+    height: 2rem;
+}
+#modal_menu *:not(.closewrap) input[type="text"] {
+    width: 80%;
+    font-size: larger;
+}
+.input {
+    margin-bottom: 50px;
+}
+#modal_menu *:not(.closewrap) input[type="button"] {
+    display: inline-block;
+    width: 20%;
+    background-color: skyblue;
+    color: black;
+}
