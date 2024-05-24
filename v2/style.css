@@ -63,13 +63,13 @@ header p { color: white; }
 #output {
     width: 100%;
     height: 100%;
-    padding: 1em;
+    padding: 10px;
 }
 #output:empty {
     display: none;
 }
 #wrapper {
-    margin: 1em;
+    margin: 20px;
 }
 .ch {
     color: white;
@@ -111,8 +111,20 @@ header p { color: white; }
     transform: rotate(-0.25turn);
     -webkit-appearance: none;
     appearance: none;
-    background-color: aqua;
+    background-color: transparent;
+}
+#change_font-size::-webkit-slider-runnable-track {
+    background: #efafda;
     border-radius: 10px;
+}
+#change_font-size::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 2em;
+    height: 3em;
+    margin: -1em 0;
+    background-color: yellow;
+    border-radius: 20%;
 }
 
 #check_ruby_label:hover, #plus>button:hover, #minus>button:hover {

