@@ -213,7 +213,7 @@ footer details iframe {
     }
     .closed {
         left: -33.3vw !important;
-    } 
+    }
     .letter {
         left: 0px;
     }
@@ -236,4 +236,74 @@ footer details iframe {
         height: 6rem;
         font-size: 1.3rem;
     }
+}
+
+/* ルビ全体の行間や余白 */
+.jp, .ch {
+    line-height: 1.8;
+    margin-bottom: 8px;
+}
+
+/* ルビタグ全体の位置と揃え */
+ruby {
+    ruby-align: start;
+    ruby-position: over;
+}
+
+/* 日本語ふりがな */
+rt.furigana {
+    font-size: 0.6em;
+    color: #ffd966; /* 金色 */
+    font-weight: normal;
+    letter-spacing: 0.05em;
+}
+
+/* ピンイン（中国語ルビ） */
+rt.pinyin {
+    font-size: 0.6em;
+    color: #ff9999; /* ピンク */
+    font-style: italic;
+    letter-spacing: 0.05em;
+}
+
+/* 本文の漢字部分 */
+rb {
+    font-size: 1em;
+}
+
+/* 小画面調整 */
+@media screen and (max-width: 600px) {
+    rt.furigana,
+    rt.pinyin {
+        font-size: 0.7em;
+    }
+}
+
+/* 行間を広げて土台の余裕をつくる */
+.jp, .ch { line-height: 2.2; }
+
+/* ルビの基本調整（小さめ＋字間ゆるめ） */
+ruby { ruby-position: over; ruby-align: start; }
+rt {
+  font-size: .55em;
+  line-height: 1;
+  letter-spacing: .08em;       /* ルビ同士の詰まり感を軽減 */
+  text-shadow: 0 0 2px rgba(0,0,0,.35);
+}
+
+/* 上下の“近さ”を解消：ルビを少し上に逃がす */
+rt { transform: translateY(-0.18em); }
+
+/* ルビの左右に微妙なゆとりを作る（横の窮屈さ対策） */
+ruby { margin: 0 .06em; }
+rb   { padding: 0 .04em; }
+
+/* 色分けはそのまま（必要なら色だけ調整） */
+rt.furigana { color:#f2d26b; }
+rt.pinyin   { color:#f199a2; font-style: italic; }
+
+/* モバイルは衝突防止で少しだけ戻す */
+@media (max-width:600px){
+  .jp, .ch { line-height: 2.3; }
+  rt { transform: translateY(-0.14em); font-size: .6em; }
 }
