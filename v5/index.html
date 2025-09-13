@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聖書閲覧アプリ (PC Pro版)</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="../v2.png" type="image/x-icon">
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <div class="panel-section">
+                <h2>クイックジャンプ<span class="shortcut-tip">Ctrl+G</span></h2>
+                <div class="control-group">
+                    <input type="text" id="goto-input" placeholder="例: ヨハ 3:16">
+                    <button id="goto-button" class="action-btn">移動</button>
+                </div>
+            </div>
+            <div class="panel-section">
+                <h2>聖書箇所を選択</h2>
+                <div class="control-group">
+                    <label for="book-select">書巻:</label>
+                    <select id="book-select"></select>
+                </div>
+                <div class="control-group">
+                    <label for="chapter-select">章:</label>
+                    <select id="chapter-select"></select>
+                </div>
+                <div class="navigation-buttons">
+                    <button id="prev-book" title="前の書巻 (Ctrl + ←)">&lt;&lt;</button>
+                    <button id="prev-chapter" title="前の章 (←)">&lt;</button>
+                    <button id="next-chapter" title="次の章 (→)">&gt;</button>
+                    <button id="next-book" title="次の書巻 (Ctrl + →)">&gt;&gt;</button>
+                </div>
+            </div>
+            <div class="panel-section">
+                <h2>語句検索<span class="shortcut-tip">Ctrl+F</span></h2>
+                <div class="control-group">
+                    <input type="search" id="search-input" placeholder="例: 信仰 愛">
+                </div>
+            </div>
+            <div class="panel-section user-data-section">
+                <div class="tabs">
+                    <button class="tab-button active" onclick="showTab('history')">閲覧履歴</button>
+                    <button class="tab-button" onclick="showTab('bookmarks')">ブックマーク</button>
+                </div>
+                <div id="history-content" class="tab-content active"><ul id="history-list"></ul></div>
+                <div id="bookmarks-content" class="tab-content"><ul id="bookmarks-list"></ul></div>
+            </div>
+            <details class="panel-section settings" open>
+                <summary><h2>設定</h2></summary>
+                <div class="settings-content">
+                    <div class="switch-container">
+                        <span>ダークモード</span><span class="shortcut-tip">Ctrl+D</span>
+                        <label class="switch"><input type="checkbox" id="theme-toggle"></label>
+                    </div>
+                    <div class="switch-container">
+                        <span>ルビ (日)</span><span class="shortcut-tip">Ctrl+J</span>
+                        <label class="switch"><input type="checkbox" id="ruby-jp-toggle" checked></label>
+                    </div>
+                    <div class="switch-container">
+                        <span>ルビ (中)</span><span class="shortcut-tip">Ctrl+C</span>
+                        <label class="switch"><input type="checkbox" id="ruby-ch-toggle" checked></label>
+                    </div>
+                    <label for="fontSizeSlider" style="margin-top:15px;">文字サイズ:</label>
+                    <input type="range" id="fontSizeSlider" min="12" max="32" value="16">
+                </div>
+            </details>
+        </div>
+
+        <div class="main-content-wrapper">
+            <button id="panel-toggle-btn" title="サイドパネルを開閉">☰</button>
+            <header>
+                 <div class="header-title">
+                     <p id="main-header-title"></p>
+                 </div>
+            </header>
+            <main id="main-content">
+                <div id="loader" class="loader">
+                    <div class="spinner"></div>
+                    <p>データを読み込んでいます...</p>
+                </div>
+                <div id="bible-display-area" class="bible-display-area"></div>
+                <div id="search-results"></div>
+            </main>
+        </div>
+    </div>
+    <script src="./script.js"></script>
+</body>
+</html>
