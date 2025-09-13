@@ -1,6 +1,8 @@
 // --- グローバル変数 ---
 let bible_data = [];
 let lastViewed = { book: "", chapter: "" };
+let history = [];
+let bookmarks = [];
 
 // --- データ定義 ---
 const bookChapters = {
@@ -73,29 +75,93 @@ const bookChapters = {
 };
 const bookList = Object.keys(bookChapters);
 
+const bookFullNames = {
+  創: "創世記",
+  出エジ: "出エジプト記",
+  レビ: "レビ記",
+  民: "民数記",
+  申: "申命記",
+  ヨシュ: "ヨシュア記",
+  士: "士師記",
+  ルツ: "ルツ記",
+  サム上: "サムエル記上",
+  サム下: "サムエル記下",
+  列王上: "列王記上",
+  列王下: "列王記下",
+  歴代上: "歴代志上",
+  歴代下: "歴代志下",
+  エズ: "エズラ記",
+  ネヘ: "ネヘミヤ記",
+  エス: "エステル記",
+  ヨブ: "ヨブ記",
+  詩: "詩篇",
+  箴: "箴言",
+  伝: "伝道の書",
+  雅: "雅歌",
+  イザ: "イザヤ書",
+  エレ: "エレミヤ書",
+  哀: "哀歌",
+  エゼ: "エゼキエル書",
+  ダニ: "ダニエル書",
+  ホセ: "ホセア書",
+  ヨエ: "ヨエル書",
+  アモ: "アモス書",
+  オバ: "オバデア書",
+  ヨナ: "ヨナ書",
+  ミカ: "ミカ書",
+  ナホ: "ナホム書",
+  ハバ: "ハバクク書",
+  ゼパ: "ゼパニヤ書",
+  ハガ: "ハガイ書",
+  ゼカ: "ゼカリヤ書",
+  マラ: "マラキ書",
+  マタ: "マタイによる福音書",
+  マル: "マルコによる福音書",
+  ルカ: "ルカによる福音書",
+  ヨハ: "ヨハネによる福音書",
+  使徒: "使徒行伝",
+  ロマ: "ローマ人への手紙",
+  Ⅰコリ: "コリント人への第一の手紙",
+  Ⅱコリ: "コリント人への第二の手紙",
+  ガラ: "ガラテヤ人への手紙",
+  エペ: "エペソ人への手紙",
+  ピリ: "ピリピ人への手紙",
+  コロ: "コロサイ人への手紙",
+  Ⅰテサ: "テサロニケ人への第一の手紙",
+  Ⅱテサ: "テサロニケ人への第二の手紙",
+  Ⅰテモ: "テモテへの第一の手紙",
+  Ⅱテモ: "テモテへの第二の手紙",
+  テト: "テトスへの手紙",
+  ピレ: "ピレモンへの手紙",
+  ヘブ: "ヘブル人への手紙",
+  ヤコ: "ヤコブの手紙",
+  Ⅰペテ: "ペテロの第一の手紙",
+  Ⅱペテ: "ペテロの第二の手紙",
+  Ⅰヨハ: "ヨハネの第一の手紙",
+  Ⅱヨハ: "ヨハネの第二の手紙",
+  Ⅲヨハ: "ヨハネの第三の手紙",
+  ユダ: "ユダの手紙",
+  黙: "ヨハネの黙示録",
+};
+
 // --- 初期化処理 ---
 document.addEventListener("DOMContentLoaded", () => {
+  loadUserData();
   applyTheme();
-  applyLangOrder(); // ★保存された言語順序を適用
+  applyLangOrder();
   setupEventListeners();
   loadBibleData()
     .then(() => {
-      console.log("聖書データの読み込みが完了しました。");
       document.getElementById("loader").style.display = "none";
       populateBooks();
     })
     .catch((err) => {
       document.getElementById("loader").innerText =
         "データの読み込みに失敗しました: " + err;
-      console.error(err);
     });
 });
 
 function setupEventListeners() {
-  document.getElementById("search-icon").addEventListener("click", () => {
-    toggleMenu();
-    setTimeout(() => document.getElementById("search-input").focus(), 300);
-  });
   document
     .getElementById("prev-book")
     .addEventListener("click", navigateBookChapter.bind(null, -1, true));
@@ -110,7 +176,37 @@ function setupEventListeners() {
     .addEventListener("click", navigateBookChapter.bind(null, 1, false));
 }
 
-// --- データ読み込み (変更なし) ---
+// --- サイドバー制御 ---
+function toggleLeftMenu() {
+  const leftSidebar = document.getElementById("left-sidebar");
+  leftSidebar.classList.toggle("open");
+  document.getElementById("left-overlay").classList.toggle("open");
+  if (leftSidebar.classList.contains("open")) {
+    document.getElementById("right-sidebar").classList.remove("open");
+    document.getElementById("right-overlay").classList.remove("open");
+    renderHistory();
+    renderBookmarks();
+  }
+}
+
+function toggleRightMenu() {
+  const rightSidebar = document.getElementById("right-sidebar");
+  rightSidebar.classList.toggle("open");
+  document.getElementById("right-overlay").classList.toggle("open");
+  if (rightSidebar.classList.contains("open")) {
+    document.getElementById("left-sidebar").classList.remove("open");
+    document.getElementById("left-overlay").classList.remove("open");
+  }
+}
+
+function isSidebarOpen() {
+  return (
+    document.getElementById("left-sidebar").classList.contains("open") ||
+    document.getElementById("right-sidebar").classList.contains("open")
+  );
+}
+
+// --- データ読み込み ---
 async function loadBibleData() {
   const CSV_PATHS = { hira: "../Data(hira).csv", zh: "../chinese_compact.csv" };
   const hiraText = await fetchCSV(CSV_PATHS.hira);
@@ -122,12 +218,14 @@ async function loadBibleData() {
   }
   return bible_data;
 }
+
 async function fetchCSV(url) {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok)
     throw new Error(`Fetch失敗: ${url} (${res.status} ${res.statusText})`);
   return await res.text();
 }
+
 function csvTo2D(text) {
   return text
     .replace(/\uFEFF/g, "")
@@ -135,6 +233,7 @@ function csvTo2D(text) {
     .filter((line) => line.trim() !== "")
     .map((line) => line.split(","));
 }
+
 function compactToRuby(str) {
   return !str
     ? ""
@@ -150,15 +249,17 @@ function populateBooks() {
   bookList.forEach((abbr) => {
     const option = document.createElement("option");
     option.value = abbr;
-    option.textContent = abbr;
+    option.textContent = bookFullNames[abbr];
     bookSelect.appendChild(option);
   });
-  updateChapters();
+  const lastHistory = history[0];
+  if (lastHistory) {
+    displayChapter(lastHistory.book, lastHistory.chapter);
+  } else {
+    updateChapters();
+  }
 }
-function toggleMenu() {
-  document.getElementById("sidebar").classList.toggle("open");
-  document.getElementById("overlay").classList.toggle("open");
-}
+
 function updateChapters() {
   const bookSelect = document.getElementById("book-select");
   const chapterSelect = document.getElementById("chapter-select");
@@ -175,8 +276,12 @@ function updateChapters() {
 }
 
 function displayChapter(book = null, chapter = null) {
-  if (document.getElementById("sidebar").classList.contains("open"))
-    toggleMenu();
+  if (isSidebarOpen()) {
+    if (document.getElementById("left-sidebar").classList.contains("open"))
+      toggleLeftMenu();
+    if (document.getElementById("right-sidebar").classList.contains("open"))
+      toggleRightMenu();
+  }
   document.getElementById("search-results").innerHTML = "";
   const contentDiv = document.getElementById("bible-content");
   contentDiv.innerHTML = "";
@@ -194,6 +299,7 @@ function displayChapter(book = null, chapter = null) {
   lastViewed = { book: targetBook, chapter: parseInt(targetChapter) };
   updateHeader(targetBook, targetChapter);
   updateNavButtons();
+  addHistory(targetBook, parseInt(targetChapter));
 
   const showJpRuby = document.getElementById("ruby-jp-toggle").checked;
   const showChRuby = document.getElementById("ruby-ch-toggle").checked;
@@ -210,17 +316,12 @@ function displayChapter(book = null, chapter = null) {
       const chDiv = `<div class="ch">${
         showChRuby ? compactToRuby(row[6]) : row[2]
       }</div>`;
-
       const verseLangs = isLangOrderSwapped ? chDiv + jpDiv : jpDiv + chDiv;
-
-      // ★節番号を上に、言語表示をverse-contentで囲む構造に変更
-      contentHTML += `
-              <div class="verse-container">
-                  <div class="verse-ref">${verseNum}</div>
-                  <div class="verse-content">
-                      ${verseLangs}
-                  </div>
-              </div>`;
+      const isBookmarked = bookmarks.includes(verseRef);
+      const bookmarkIcon = `<i class="bookmark-icon" onclick="toggleBookmark('${verseRef}')">${
+        isBookmarked ? "★" : "☆"
+      }</i>`;
+      contentHTML += `<div class="verse-container"><div class="verse-ref">${verseNum}${bookmarkIcon}</div><div class="verse-content">${verseLangs}</div></div>`;
     }
   }
   contentDiv.innerHTML = contentHTML;
@@ -228,18 +329,19 @@ function displayChapter(book = null, chapter = null) {
   changeFontSize(document.getElementById("fontSizeSlider").value);
 }
 
-// --- ナビゲーションロジック (変更なし) ---
+// --- ナビゲーションロジック ---
 function navigateBookChapter(direction, isBook) {
   let { book, chapter } = lastViewed;
   if (isBook) {
     const newBookIndex = bookList.indexOf(book) + direction;
-    if (newBookIndex >= 0 && newBookIndex < bookList.length)
+    if (newBookIndex >= 0 && newBookIndex < bookList.length) {
       displayChapter(bookList[newBookIndex], 1);
+    }
   } else {
     const newChapter = chapter + direction;
-    if (newChapter > 0 && newChapter <= bookChapters[book])
+    if (newChapter > 0 && newChapter <= bookChapters[book]) {
       displayChapter(book, newChapter);
-    else if (newChapter <= 0) {
+    } else if (newChapter <= 0) {
       const newBookIndex = bookList.indexOf(book) - 1;
       if (newBookIndex >= 0) {
         const prevBook = bookList[newBookIndex];
@@ -247,11 +349,13 @@ function navigateBookChapter(direction, isBook) {
       }
     } else {
       const newBookIndex = bookList.indexOf(book) + 1;
-      if (newBookIndex < bookList.length)
+      if (newBookIndex < bookList.length) {
         displayChapter(bookList[newBookIndex], 1);
+      }
     }
   }
 }
+
 function updateNavButtons() {
   const { book, chapter } = lastViewed;
   const currentBookIndex = bookList.indexOf(book);
@@ -264,48 +368,132 @@ function updateNavButtons() {
     currentBookIndex === bookList.length - 1 && chapter === bookChapters[book];
 }
 
+// --- 履歴＆ブックマーク機能 ---
+function loadUserData() {
+  history = JSON.parse(localStorage.getItem("bibleHistory")) || [];
+  bookmarks = JSON.parse(localStorage.getItem("bibleBookmarks")) || [];
+}
+
+function addHistory(book, chapter) {
+  const existingIndex = history.findIndex(
+    (item) => item.book === book && item.chapter === chapter
+  );
+  if (existingIndex > -1) {
+    history.splice(existingIndex, 1);
+  }
+  history.unshift({ book, chapter });
+  if (history.length > 20) {
+    history.pop();
+  }
+  localStorage.setItem("bibleHistory", JSON.stringify(history));
+}
+
+function toggleBookmark(verseRef) {
+  const index = bookmarks.indexOf(verseRef);
+  if (index > -1) {
+    bookmarks.splice(index, 1);
+  } else {
+    bookmarks.unshift(verseRef);
+    bookmarks.sort();
+  }
+  localStorage.setItem("bibleBookmarks", JSON.stringify(bookmarks));
+  refreshDisplay();
+}
+
+function renderHistory() {
+  const list = document.getElementById("history-list");
+  if (history.length === 0) {
+    list.innerHTML = `<li class="empty-message">履歴はありません</li>`;
+    return;
+  }
+  list.innerHTML = history
+    .map(
+      (item) =>
+        `<li onclick="displayChapter('${item.book}', ${item.chapter})">${
+          bookFullNames[item.book]
+        } ${item.chapter}章</li>`
+    )
+    .join("");
+}
+
+function renderBookmarks() {
+  const list = document.getElementById("bookmarks-list");
+  if (bookmarks.length === 0) {
+    list.innerHTML = `<li class="empty-message">ブックマークはありません</li>`;
+    return;
+  }
+  list.innerHTML = bookmarks
+    .map((ref) => {
+      const match = ref.match(/^([^\d]+)(\d+:\d+)/);
+      const bookAbbr = match[1];
+      const chapterAndVerse = match[2];
+      const chapter = parseInt(chapterAndVerse.split(":")[0]);
+      return `<li onclick="displayChapter('${bookAbbr}', ${chapter})">${bookFullNames[bookAbbr]} ${chapterAndVerse}</li>`;
+    })
+    .join("");
+}
+
+function showTab(tabName) {
+  document
+    .querySelectorAll(".tab-content")
+    .forEach((el) => el.classList.remove("active"));
+  document
+    .querySelectorAll(".tab-button")
+    .forEach((el) => el.classList.remove("active"));
+  document.getElementById(`${tabName}-content`).classList.add("active");
+  document
+    .querySelector(`.tab-button[onclick="showTab('${tabName}')"]`)
+    .classList.add("active");
+}
+
 // --- 設定関連 ---
 function refreshDisplay() {
-  if (lastViewed.book && lastViewed.chapter)
+  if (lastViewed.book && lastViewed.chapter) {
     displayChapter(lastViewed.book, lastViewed.chapter);
+  }
 }
+
 function updateHeader(book, chapter) {
-  document.title = `${book} ${chapter}章`;
-  document.getElementById("Abbre").textContent = book;
+  const fullName = bookFullNames[book] || book;
+  document.title = `${fullName} ${chapter}章`;
+  document.getElementById("Abbre").textContent = fullName;
   document.getElementById("syou").textContent = `${chapter}章`;
 }
+
 function toggleTheme() {
   const newTheme =
     document.body.getAttribute("data-theme") === "dark" ? "light" : "dark";
   document.body.setAttribute("data-theme", newTheme);
   localStorage.setItem("theme", newTheme);
 }
+
 function applyTheme() {
   const savedTheme = localStorage.getItem("theme") || "light";
   document.body.setAttribute("data-theme", savedTheme);
   document.getElementById("theme-toggle").checked = savedTheme === "dark";
 }
-function changeFontSize(size) {
-  document.getElementById("main-content").style.fontSize = size + "px";
-}
 
-// ★言語順序の切り替えと保存
 function toggleLangOrder() {
   const isSwapped = document.getElementById("lang-order-toggle").checked;
   localStorage.setItem("langOrderSwapped", isSwapped);
   refreshDisplay();
 }
+
 function applyLangOrder() {
   const isSwapped = localStorage.getItem("langOrderSwapped") === "true";
   document.getElementById("lang-order-toggle").checked = isSwapped;
 }
 
+function changeFontSize(size) {
+  document.getElementById("main-content").style.fontSize = size + "px";
+}
+
 // --- 検索 ---
 function searchBible() {
+  if (document.getElementById("left-sidebar").classList.contains("open"))
+    toggleLeftMenu();
   const query = document.getElementById("search-input").value.trim();
   if (!query) return;
-  if (document.getElementById("sidebar").classList.contains("open"))
-    toggleMenu();
   const keywords = query.split(/\s+/).filter((k) => k);
   if (keywords.length === 0) return;
   document.getElementById("bible-content").innerHTML = "";
@@ -317,8 +505,9 @@ function searchBible() {
       const row = bible_data[i];
       const jpText = row[4];
       const chText = row[2];
-      if (keywords.every((kw) => jpText.includes(kw) || chText.includes(kw)))
+      if (keywords.every((kw) => jpText.includes(kw) || chText.includes(kw))) {
         results.push(row);
+      }
     }
     updateHeader(`「${query}」`, `${results.length}件の検索結果`);
     const isLangOrderSwapped =
@@ -342,14 +531,8 @@ function searchBible() {
           const result_content = isLangOrderSwapped
             ? chDiv + jpDiv
             : jpDiv + chDiv;
-          // ★検索結果も同様に、節参照(verse-ref)を上に、言語表示をverse-contentで囲む構造に変更
-          resultsHTML += `
-                      <div class="search-result-item" onclick="displayChapter('${book}', '${chapter}')">
-                          <div class="verse-ref">${verseRef}</div>
-                          <div class="verse-content">
-                              ${result_content}
-                          </div>
-                      </div>`;
+          const fullVerseRef = verseRef.replace(book, bookFullNames[book]);
+          resultsHTML += `<div class="search-result-item" onclick="displayChapter('${book}', '${chapter}')"><div class="verse-ref">${fullVerseRef}</div><div class="verse-content">${result_content}</div></div>`;
         }
       });
     } else {
@@ -359,6 +542,7 @@ function searchBible() {
     changeFontSize(document.getElementById("fontSizeSlider").value);
   }, 10);
 }
+
 function highlightKeywords(text, keywords) {
   let highlightedText = text;
   keywords.forEach((kw) => {
