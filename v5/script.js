@@ -299,7 +299,6 @@ function displayChapter(book = null, chapter = null, verse = null) {
 
   const showJpRuby = document.getElementById("ruby-jp-toggle").checked;
   const showChRuby = document.getElementById("ruby-ch-toggle").checked;
-
   const versePrefix = `${targetBook}${targetChapter}:`;
   let contentHTML = "";
 
@@ -331,9 +330,10 @@ function displayChapter(book = null, chapter = null, verse = null) {
     }
   }
   displayArea.innerHTML = contentHTML;
-  document.getElementById("main-content").scrollTop = 0;
 
+  // ★★ スクロール処理を修正 ★★
   if (verse) {
+    // ブックマークなどから特定の節に飛ぶ場合
     setTimeout(() => {
       const verseId = `v-${targetBook}-${targetChapter}-${verse}`;
       const verseElement = document.getElementById(verseId);
@@ -348,8 +348,24 @@ function displayChapter(book = null, chapter = null, verse = null) {
         }
       }
     }, 100);
+  } else {
+    // 通常の章移動の場合は最上部に
+    document.getElementById("main-content").scrollTop = 0;
   }
 }
+
+// ★★ refreshDisplay関数を修正 ★★
+function refreshDisplay() {
+  const mainContent = document.getElementById("main-content");
+  const currentScroll = mainContent.scrollTop; // 現在のスクロール位置を記憶
+
+  const { book, chapter } = appState.lastViewed;
+  if (book && chapter) {
+    displayChapter(book, chapter); // 再描画（この時点では scrollTop = 0 になる）
+    mainContent.scrollTop = currentScroll; // 記憶した位置にスクロールを戻す
+  }
+}
+
 function populateBooks() {
   const bookSelect = document.getElementById("book-select");
   bookList.forEach((abbr) => {
@@ -487,21 +503,12 @@ function showTab(tabName) {
     .querySelector(`.tab-button[onclick="showTab('${tabName}')"]`)
     .classList.add("active");
 }
-function refreshDisplay() {
-  const { book, chapter } = appState.lastViewed;
-  if (book && chapter) {
-    displayChapter(book, chapter);
-  }
-}
-
-// ★★ ヘッダー更新関数を修正 ★★
 function updateHeader(book, chapter) {
   const fullName = bookFullNames[book] || book;
   const title = `${fullName} ${chapter}章`;
   document.title = title;
   document.getElementById("main-header-title").textContent = title;
 }
-
 function toggleTheme() {
   const newTheme =
     document.body.getAttribute("data-theme") === "dark" ? "light" : "dark";
@@ -653,8 +660,12 @@ function copyVerseToClipboard(verseRef) {
 function handleShortcuts(e) {
   if (e.key !== "Escape") {
     if (["search-input", "goto-input"].includes(e.target.id)) return;
-    if (e.ctrlKey || e.metaKey) {
+    // preventDefaultをctrlKey/metaKeyがある場合と矢印キーの場合のみに限定
+    if (e.ctrlKey || e.metaKey || e.key.startsWith("Arrow")) {
       e.preventDefault();
+    }
+
+    if (e.ctrlKey || e.metaKey) {
       switch (e.key.toLowerCase()) {
         case "g":
           document.getElementById("goto-input").focus();
@@ -679,7 +690,6 @@ function handleShortcuts(e) {
           break;
       }
     } else {
-      e.preventDefault();
       switch (e.key) {
         case "ArrowLeft":
           document.getElementById("prev-chapter").click();
@@ -690,6 +700,7 @@ function handleShortcuts(e) {
       }
     }
   } else {
+    // Escapeキーが押された場合
     e.preventDefault();
     const searchInput = document.getElementById("search-input");
     const gotoInput = document.getElementById("goto-input");
