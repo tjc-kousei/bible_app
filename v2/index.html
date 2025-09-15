@@ -52,23 +52,20 @@
             <summary>ルビ（ふりがな）間違報告フォーム</summary>
             <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSf6umaI7YYkR13ZO4sIrUIQmZ_ldguGQFK-IKeFh5B5ERJdog/viewform?embedded=true" width="640" height="90vh" frameborder="0" marginheight="0" marginwidth="0">読み込んでいます…</iframe>
         </details>
-        <details>
-            <summary>お知らせ</summary>
-        </details>
-        <details>
-            <summary>更新ログ</summary>
-            <table>
-                <tr><td class="date">2025/08/09</td><td>中国語ルビ追加</td></tr>
-                <tr><td class="date">2023/05/06</td><td>ルビ修正</td></tr>
-                <tr><td class="date">2023/05/05</td><td>ルビ修正</td></tr>
-                <tr><td class="date">2023/04/08</td><td>要望フォームを追加</td></tr>
-                <tr><td class="date">2023/04/07</td><td>footer追加しルビ間違い報告フォームとお知らせと更新ログを追加</td></tr>
-                <tr><td class="date">2023/04/07</td><td>文字サイズ変更をボタンからスライダーに変更</td></tr>
-            </table>
-        </details>
         <p>Copyright (C) 2022 Kousei.H All Rights Reserved.</p>
     </footer>
 
+    <div id="announcement-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 id="announcement-title"></h2>
+            <p id="announcement-message"></p>
+            <div class="dont-show-again-container">
+                <input type="checkbox" id="announcement-dont-show-again">
+                <label for="announcement-dont-show-again">今後このお知らせを表示しない</label>
+            </div>
+            <button id="announcement-close-btn">閉じる</button>
+        </div>
+    </div>
     <script src="./script.js"></script>
 </body>
 </html>

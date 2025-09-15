@@ -155,7 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(() => {
       document.getElementById("loader").style.display = "none";
       createBookNameLookup();
-      populateBooks();
+      populateBooks(); // ★修正ポイント
       renderHistory();
       renderBookmarks();
     })
@@ -167,9 +167,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function setupEventListeners() {
-  document
-    .getElementById("book-select")
-    .addEventListener("change", () => updateChapters());
+  document.getElementById("book-select").addEventListener("change", () => {
+    updateChapters();
+    displayChapter(); // 書巻変更時は章リストを更新してから内容を表示
+  });
   document
     .getElementById("chapter-select")
     .addEventListener("change", () => displayChapter());
@@ -265,6 +266,44 @@ function stripPinyin(compactText) {
 }
 
 // --- UI操作 ---
+// ★★ 起動ロジックを修正 ★★
+function populateBooks() {
+  const bookSelect = document.getElementById("book-select");
+  const chapterSelect = document.getElementById("chapter-select");
+  bookList.forEach((abbr) => {
+    const option = document.createElement("option");
+    option.value = abbr;
+    option.textContent = bookFullNames[abbr];
+    bookSelect.appendChild(option);
+  });
+
+  const lastHistory = appState.history[0];
+  if (lastHistory) {
+    bookSelect.value = lastHistory.book;
+    updateChapters();
+    chapterSelect.value = lastHistory.chapter;
+    displayChapter();
+  } else {
+    updateChapters();
+    displayChapter();
+  }
+}
+
+// ★★ updateChaptersからdisplayChapterの呼び出しを削除 ★★
+function updateChapters() {
+  const bookSelect = document.getElementById("book-select");
+  const chapterSelect = document.getElementById("chapter-select");
+  const selectedBook = bookSelect.value;
+  chapterSelect.innerHTML = "";
+  const totalChapters = bookChapters[selectedBook] || 0;
+  for (let i = 1; i <= totalChapters; i++) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = i + "章";
+    chapterSelect.appendChild(option);
+  }
+}
+
 function displayChapter(book = null, chapter = null, verse = null) {
   document.getElementById("search-results").innerHTML = "";
   document.getElementById("search-input").value = "";
@@ -273,23 +312,17 @@ function displayChapter(book = null, chapter = null, verse = null) {
   displayArea.innerHTML = "";
   const bookSelect = document.getElementById("book-select");
   const chapterSelect = document.getElementById("chapter-select");
-  const targetBook = book || bookSelect.value;
-  const targetChapter = chapter || chapterSelect.value;
 
-  if (book !== null && chapter !== null) {
-    if (bookSelect.value !== targetBook) {
-      bookSelect.value = targetBook;
-      const totalChapters = bookChapters[targetBook] || 0;
-      chapterSelect.innerHTML = "";
-      for (let i = 1; i <= totalChapters; i++) {
-        const option = document.createElement("option");
-        option.value = i;
-        option.textContent = i + "章";
-        chapterSelect.appendChild(option);
-      }
-    }
-    chapterSelect.value = targetChapter;
+  // 引数がない場合はプルダウンから値を取得
+  const targetBook = book || bookSelect.value;
+  const targetChapter = chapter || chapterSelect.value || 1; // 章が空の場合のフォールバック
+
+  // プルダウンの表示を実態に合わせる
+  if (bookSelect.value !== targetBook) {
+    bookSelect.value = targetBook;
+    updateChapters(); // 他の書巻に飛んだ時に章リストを更新
   }
+  chapterSelect.value = targetChapter;
 
   appState.lastViewed = { book: targetBook, chapter: parseInt(targetChapter) };
   updateHeader(targetBook, targetChapter);
@@ -331,9 +364,7 @@ function displayChapter(book = null, chapter = null, verse = null) {
   }
   displayArea.innerHTML = contentHTML;
 
-  // ★★ スクロール処理を修正 ★★
   if (verse) {
-    // ブックマークなどから特定の節に飛ぶ場合
     setTimeout(() => {
       const verseId = `v-${targetBook}-${targetChapter}-${verse}`;
       const verseElement = document.getElementById(verseId);
@@ -349,51 +380,17 @@ function displayChapter(book = null, chapter = null, verse = null) {
       }
     }, 100);
   } else {
-    // 通常の章移動の場合は最上部に
     document.getElementById("main-content").scrollTop = 0;
   }
 }
-
-// ★★ refreshDisplay関数を修正 ★★
 function refreshDisplay() {
   const mainContent = document.getElementById("main-content");
-  const currentScroll = mainContent.scrollTop; // 現在のスクロール位置を記憶
-
+  const currentScroll = mainContent.scrollTop;
   const { book, chapter } = appState.lastViewed;
   if (book && chapter) {
-    displayChapter(book, chapter); // 再描画（この時点では scrollTop = 0 になる）
-    mainContent.scrollTop = currentScroll; // 記憶した位置にスクロールを戻す
+    displayChapter(book, chapter);
+    mainContent.scrollTop = currentScroll;
   }
-}
-
-function populateBooks() {
-  const bookSelect = document.getElementById("book-select");
-  bookList.forEach((abbr) => {
-    const option = document.createElement("option");
-    option.value = abbr;
-    option.textContent = bookFullNames[abbr];
-    bookSelect.appendChild(option);
-  });
-  const lastHistory = appState.history[0];
-  if (lastHistory) {
-    displayChapter(lastHistory.book, lastHistory.chapter);
-  } else {
-    displayChapter(bookList[0], 1);
-  }
-}
-function updateChapters() {
-  const bookSelect = document.getElementById("book-select");
-  const chapterSelect = document.getElementById("chapter-select");
-  const selectedBook = bookSelect.value;
-  chapterSelect.innerHTML = "";
-  const totalChapters = bookChapters[selectedBook] || 0;
-  for (let i = 1; i <= totalChapters; i++) {
-    const option = document.createElement("option");
-    option.value = i;
-    option.textContent = i + "章";
-    chapterSelect.appendChild(option);
-  }
-  displayChapter(selectedBook, 1);
 }
 function navigateBookChapter(direction, isBook) {
   let { book, chapter } = appState.lastViewed;
@@ -660,7 +657,6 @@ function copyVerseToClipboard(verseRef) {
 function handleShortcuts(e) {
   if (e.key !== "Escape") {
     if (["search-input", "goto-input"].includes(e.target.id)) return;
-    // preventDefaultをctrlKey/metaKeyがある場合と矢印キーの場合のみに限定
     if (e.ctrlKey || e.metaKey || e.key.startsWith("Arrow")) {
       e.preventDefault();
     }
@@ -700,7 +696,6 @@ function handleShortcuts(e) {
       }
     }
   } else {
-    // Escapeキーが押された場合
     e.preventDefault();
     const searchInput = document.getElementById("search-input");
     const gotoInput = document.getElementById("goto-input");

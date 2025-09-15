@@ -4,6 +4,9 @@ let lastViewed = { book: "", chapter: "" };
 let history = [];
 let bookmarks = [];
 
+// --- お知らせのバージョンID ---
+const LATEST_ANNOUNCEMENT_ID = "announce-2025-09-15-v2";
+
 // --- データ定義 ---
 const bookChapters = {
   創: 50,
@@ -150,6 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
   applyTheme();
   applyLangOrder();
   setupEventListeners();
+  handleAnnouncements();
   loadBibleData()
     .then(() => {
       document.getElementById("loader").style.display = "none";
@@ -174,6 +178,50 @@ function setupEventListeners() {
   document
     .getElementById("next-chapter")
     .addEventListener("click", navigateBookChapter.bind(null, 1, false));
+  document.getElementById("book-select").addEventListener("change", () => {
+    updateChapters();
+    displayChapter();
+  });
+  document
+    .getElementById("chapter-select")
+    .addEventListener("change", () => displayChapter());
+
+  const reportModal = document.getElementById("report-modal");
+  const openBtn = document.getElementById("report-modal-open-btn");
+  const closeBtn = document.getElementById("report-modal-close-btn");
+  openBtn.addEventListener("click", () => {
+    reportModal.classList.add("open");
+    if (isSidebarOpen()) toggleRightMenu();
+  });
+  closeBtn.addEventListener("click", () => {
+    reportModal.classList.remove("open");
+  });
+  reportModal.addEventListener("click", (event) => {
+    if (event.target === reportModal) reportModal.classList.remove("open");
+  });
+
+  const announceModal = document.getElementById("announce-modal");
+  const closeXBtn = document.getElementById("announce-modal-close-btn");
+  const closeTempBtn = document.getElementById("announce-close-temp-btn");
+  const closePermBtn = document.getElementById("announce-close-perm-btn");
+  const closeAnnouncementTemp = () => {
+    announceModal.classList.remove("open");
+  };
+  const closeAnnouncementPerm = () => {
+    localStorage.setItem("seenAnnouncementId", LATEST_ANNOUNCEMENT_ID);
+    announceModal.classList.remove("open");
+  };
+  closeXBtn.addEventListener("click", closeAnnouncementTemp);
+  closeTempBtn.addEventListener("click", closeAnnouncementTemp);
+  closePermBtn.addEventListener("click", closeAnnouncementPerm);
+}
+
+// --- お知らせ機能 ---
+function handleAnnouncements() {
+  const seenId = localStorage.getItem("seenAnnouncementId");
+  if (seenId !== LATEST_ANNOUNCEMENT_ID) {
+    document.getElementById("announce-modal").classList.add("open");
+  }
 }
 
 // --- サイドバー制御 ---
@@ -188,7 +236,6 @@ function toggleLeftMenu() {
     renderBookmarks();
   }
 }
-
 function toggleRightMenu() {
   const rightSidebar = document.getElementById("right-sidebar");
   rightSidebar.classList.toggle("open");
@@ -198,7 +245,6 @@ function toggleRightMenu() {
     document.getElementById("left-overlay").classList.remove("open");
   }
 }
-
 function isSidebarOpen() {
   return (
     document.getElementById("left-sidebar").classList.contains("open") ||
@@ -218,14 +264,12 @@ async function loadBibleData() {
   }
   return bible_data;
 }
-
 async function fetchCSV(url) {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok)
     throw new Error(`Fetch失敗: ${url} (${res.status} ${res.statusText})`);
   return await res.text();
 }
-
 function csvTo2D(text) {
   return text
     .replace(/\uFEFF/g, "")
@@ -233,7 +277,6 @@ function csvTo2D(text) {
     .filter((line) => line.trim() !== "")
     .map((line) => line.split(","));
 }
-
 function compactToRuby(str) {
   return !str
     ? ""
@@ -246,17 +289,23 @@ function compactToRuby(str) {
 // --- UI操作 ---
 function populateBooks() {
   const bookSelect = document.getElementById("book-select");
+  const chapterSelect = document.getElementById("chapter-select");
   bookList.forEach((abbr) => {
     const option = document.createElement("option");
     option.value = abbr;
     option.textContent = bookFullNames[abbr];
     bookSelect.appendChild(option);
   });
+
   const lastHistory = history[0];
   if (lastHistory) {
-    displayChapter(lastHistory.book, lastHistory.chapter);
+    bookSelect.value = lastHistory.book;
+    updateChapters();
+    chapterSelect.value = lastHistory.chapter;
+    displayChapter();
   } else {
     updateChapters();
+    displayChapter();
   }
 }
 
@@ -264,6 +313,9 @@ function updateChapters() {
   const bookSelect = document.getElementById("book-select");
   const chapterSelect = document.getElementById("chapter-select");
   const selectedBook = bookSelect.value;
+  const currentChapter = chapterSelect.value
+    ? parseInt(chapterSelect.value)
+    : 1;
   chapterSelect.innerHTML = "";
   const totalChapters = bookChapters[selectedBook] || 0;
   for (let i = 1; i <= totalChapters; i++) {
@@ -272,7 +324,9 @@ function updateChapters() {
     option.textContent = i + "章";
     chapterSelect.appendChild(option);
   }
-  displayChapter();
+  if (currentChapter <= totalChapters) {
+    chapterSelect.value = currentChapter;
+  }
 }
 
 function displayChapter(book = null, chapter = null) {
@@ -287,15 +341,16 @@ function displayChapter(book = null, chapter = null) {
   contentDiv.innerHTML = "";
   const bookSelect = document.getElementById("book-select");
   const chapterSelect = document.getElementById("chapter-select");
+
   const targetBook = book || bookSelect.value;
-  const targetChapter = chapter || chapterSelect.value;
-  if (book && chapter) {
-    if (bookSelect.value !== targetBook) {
-      bookSelect.value = targetBook;
-      updateChapters();
-    }
-    chapterSelect.value = targetChapter;
+  const targetChapter = chapter || chapterSelect.value || 1;
+
+  if (bookSelect.value !== targetBook) {
+    bookSelect.value = targetBook;
+    updateChapters();
   }
+  chapterSelect.value = targetChapter;
+
   lastViewed = { book: targetBook, chapter: parseInt(targetChapter) };
   updateHeader(targetBook, targetChapter);
   updateNavButtons();
@@ -355,7 +410,6 @@ function navigateBookChapter(direction, isBook) {
     }
   }
 }
-
 function updateNavButtons() {
   const { book, chapter } = lastViewed;
   const currentBookIndex = bookList.indexOf(book);
@@ -373,7 +427,6 @@ function loadUserData() {
   history = JSON.parse(localStorage.getItem("bibleHistory")) || [];
   bookmarks = JSON.parse(localStorage.getItem("bibleBookmarks")) || [];
 }
-
 function addHistory(book, chapter) {
   const existingIndex = history.findIndex(
     (item) => item.book === book && item.chapter === chapter
@@ -387,7 +440,6 @@ function addHistory(book, chapter) {
   }
   localStorage.setItem("bibleHistory", JSON.stringify(history));
 }
-
 function toggleBookmark(verseRef) {
   const index = bookmarks.indexOf(verseRef);
   if (index > -1) {
@@ -399,7 +451,6 @@ function toggleBookmark(verseRef) {
   localStorage.setItem("bibleBookmarks", JSON.stringify(bookmarks));
   refreshDisplay();
 }
-
 function renderHistory() {
   const list = document.getElementById("history-list");
   if (history.length === 0) {
@@ -415,7 +466,6 @@ function renderHistory() {
     )
     .join("");
 }
-
 function renderBookmarks() {
   const list = document.getElementById("bookmarks-list");
   if (bookmarks.length === 0) {
@@ -432,7 +482,6 @@ function renderBookmarks() {
     })
     .join("");
 }
-
 function showTab(tabName) {
   document
     .querySelectorAll(".tab-content")
@@ -452,38 +501,32 @@ function refreshDisplay() {
     displayChapter(lastViewed.book, lastViewed.chapter);
   }
 }
-
 function updateHeader(book, chapter) {
   const fullName = bookFullNames[book] || book;
   document.title = `${fullName} ${chapter}章`;
   document.getElementById("Abbre").textContent = fullName;
   document.getElementById("syou").textContent = `${chapter}章`;
 }
-
 function toggleTheme() {
   const newTheme =
     document.body.getAttribute("data-theme") === "dark" ? "light" : "dark";
   document.body.setAttribute("data-theme", newTheme);
   localStorage.setItem("theme", newTheme);
 }
-
 function applyTheme() {
   const savedTheme = localStorage.getItem("theme") || "light";
   document.body.setAttribute("data-theme", savedTheme);
   document.getElementById("theme-toggle").checked = savedTheme === "dark";
 }
-
 function toggleLangOrder() {
   const isSwapped = document.getElementById("lang-order-toggle").checked;
   localStorage.setItem("langOrderSwapped", isSwapped);
   refreshDisplay();
 }
-
 function applyLangOrder() {
   const isSwapped = localStorage.getItem("langOrderSwapped") === "true";
   document.getElementById("lang-order-toggle").checked = isSwapped;
 }
-
 function changeFontSize(size) {
   document.getElementById("main-content").style.fontSize = size + "px";
 }
@@ -542,7 +585,6 @@ function searchBible() {
     changeFontSize(document.getElementById("fontSizeSlider").value);
   }, 10);
 }
-
 function highlightKeywords(text, keywords) {
   let highlightedText = text;
   keywords.forEach((kw) => {

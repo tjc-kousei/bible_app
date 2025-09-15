@@ -1,3 +1,17 @@
+/* ▼▼▼ お知らせ機能設定 ▼▼▼ */
+const announcementConfig = {
+  // このお知らせを有効にするか (true: 表示する, false: 表示しない)
+  enabled: true,
+  // このお知らせのユニークID (内容を変更したら、このIDも変更してください)
+  id: "version-update-20250915",
+  // お知らせのタイトル
+  title: "✨ アプリ更新のお知らせ",
+  // お知らせの本文 (HTMLタグが使えます)
+  message:
+    "新しいバージョンを公開しました。<br>データ読み込みの高速化と操作性の向上を行いました<br>中国語と日本語のルビ切り替えを独立させました<br>リンクはこちら→<a href='https://tjc-kousei.github.io/bible_app/v4/'>https://tjc-kousei.github.io/bible_app/v4/</a><br>また、こちらのバージョンから中国語拼音を削除しました。<br>更新：2025/09/15",
+};
+/* ▲▲▲ お知らせ機能設定 ▲▲▲ */
+
 const letter = document.querySelector(".letter");
 const chapter = document.querySelector(".chapter");
 const section = document.querySelector(".section");
@@ -6,40 +20,28 @@ const main = document.getElementsByTagName("main");
 const sec = document.getElementsByTagName("section");
 let letter_size = 1.0;
 
-// パスは必要に応じて調整
+// パスは必要に応じて調整 (中国語CSVのパスを削除)
 const CSV_PATHS = {
   hira: "../Data(hira).csv",
-  zh: "../chinese_compact.csv",
 };
 
-let bible_data = []; // 最終2次元配列（グローバルで使うならこのまま）
+let bible_data = []; // 最終2次元配列
 
 // 入口：ページ読み込み後に実行
 document.addEventListener("DOMContentLoaded", () => {
   loadBibleData()
     .then((data) => {
       console.log("読み込み完了");
-      // ここで data(bible_data) を使う
     })
     .catch((err) => {
       console.error(err);
     });
 });
 
+// 中国語CSVの読み込みとマージ処理を削除し簡素化
 async function loadBibleData() {
-  // 1) ひらがなCSV → 配列化
   const hiraText = await fetchCSV(CSV_PATHS.hira);
   bible_data = csvTo2D(hiraText);
-
-  // 2) 中国語CSV → 1列目を既存配列の末尾に追加
-  const zhText = await fetchCSV(CSV_PATHS.zh);
-  const zh2d = csvTo2D(zhText);
-
-  // 先頭行はヘッダー想定なので i=1 から
-  for (let i = 1; i < bible_data.length; i++) {
-    const val = zh2d[i]?.[0] ?? ""; // zhに行が無ければ空文字
-    bible_data[i].push(val);
-  }
   return bible_data;
 }
 
@@ -50,22 +52,13 @@ async function fetchCSV(url) {
   return await res.text();
 }
 
-// 超シンプルCSV→2D（カンマ区切りのみ／引用符対応ナシ）
+// 超シンプルCSV→2D
 function csvTo2D(text) {
   return text
     .replace(/\uFEFF/g, "") // BOM除去
     .split(/\r?\n/) // 改行
     .filter((line) => line.trim() !== "") // 空行除去
     .map((line) => line.split(",")); // カンマ分割
-}
-
-// "漢(pīn)" → "<ruby>漢<rt class='pinyin'>pīn</rt></ruby>"
-function compactToRuby(str) {
-  if (!str) return "";
-  return str.replace(
-    /(.)\(([^()]+)\)/g,
-    "<ruby>$1<rt class='pinyin'>$2</rt></ruby>"
-  );
 }
 
 function load() {
@@ -112,18 +105,20 @@ function load() {
             if (bible_data[n][3].includes(pattern)) {
               contents += `<div id="wrapper">`;
               contents += `<div id="${j}" style="color:white;">${j}</div>`;
+
+              let jpContent;
               if (check_ruby.checked) {
-                const jpRuby = bible_data[n][5].replaceAll(
+                jpContent = bible_data[n][5].replaceAll(
                   "<rt>",
                   "<rt class='furigana'>"
                 );
-                const chRuby = compactToRuby(bible_data[n][6]);
-                contents += `<div id="jp${j}" class="jp">${jpRuby}</div>`;
-                contents += `<div id="ch${j}" class="ch">${chRuby}</div>`;
               } else {
-                contents += `<div id="jp${j}" class="jp">${bible_data[n][4]}</div>`;
-                contents += `<div id="ch${j}" class="ch">${bible_data[n][2]}</div>`;
+                jpContent = bible_data[n][4];
               }
+              const chContent = bible_data[n][2];
+
+              contents += `<div id="jp${j}" class="jp">${jpContent}</div>`;
+              contents += `<div id="ch${j}" class="ch">${chContent}</div>`;
 
               contents += `</div>`;
               setu = j;
@@ -185,18 +180,20 @@ check_ruby.addEventListener("click", (e) => {
     if (bible_data[n][3].includes(memo_pattern)) {
       contents += `<div id="wrapper">`;
       contents += `<div id="${j}" style="color:white;">${j}</div>`;
+
+      let jpContent;
       if (check_ruby.checked) {
-        const jpRuby = bible_data[n][5].replaceAll(
+        jpContent = bible_data[n][5].replaceAll(
           "<rt>",
           "<rt class='furigana'>"
         );
-        const chRuby = compactToRuby(bible_data[n][6]);
-        contents += `<div id="jp${j}" class="jp">${jpRuby}</div>`;
-        contents += `<div id="ch${j}" class="ch">${chRuby}</div>`;
       } else {
-        contents += `<div id="jp${j}" class="jp">${bible_data[n][4]}</div>`;
-        contents += `<div id="ch${j}" class="ch">${bible_data[n][2]}</div>`;
+        jpContent = bible_data[n][4];
       }
+      const chContent = bible_data[n][2];
+
+      contents += `<div id="jp${j}" class="jp">${jpContent}</div>`;
+      contents += `<div id="ch${j}" class="ch">${chContent}</div>`;
 
       contents += `</div>`;
       setu = j;
@@ -311,7 +308,6 @@ function search() {
   if (keywords.length == 1) keywords = keyword.split(" ");
 
   if (keywords.length == 1) {
-    //検索ワードが一つのみ
     const pattern = keyword;
     document.title = "【" + pattern + "】の検索結果";
     let setu = "";
@@ -347,7 +343,6 @@ function search() {
       load();
     }
   } else {
-    //検索ワードが複数の場合 [ , ] で区切る
     const pattern = keywords;
     let hit = "";
     document.title = "【" + pattern + "】の検索結果";
@@ -379,7 +374,7 @@ function search() {
         contents += `<div class="jp">${japanese}</div>`;
         contents += `<div class="ch">${chinese}</div>`;
         contents += `</div>`;
-        hit = j; //件数をhitに代入
+        hit = j;
         j++;
       }
     }
@@ -396,7 +391,6 @@ function search() {
   modal.classList.toggle("undisplay");
 }
 
-//事前に記憶しておく配列
 let syou = [
   "50",
   "40",
@@ -604,3 +598,45 @@ let names = [
 
 load();
 document.querySelector(".Toggle2").click();
+
+/* ▼▼▼ お知らせモーダルの実行処理 ▼▼▼ */
+function setupAnnouncement() {
+  if (!announcementConfig.enabled) return;
+
+  const modal = document.getElementById("announcement-modal");
+  const titleEl = document.getElementById("announcement-title");
+  const messageEl = document.getElementById("announcement-message");
+  const closeBtn = document.getElementById("announcement-close-btn");
+  const dontShowAgainCheckbox = document.getElementById(
+    "announcement-dont-show-again"
+  );
+
+  const dismissedId = localStorage.getItem("dismissedAnnouncementId");
+
+  if (dismissedId === announcementConfig.id) {
+    return;
+  }
+
+  titleEl.innerHTML = announcementConfig.title;
+  messageEl.innerHTML = announcementConfig.message;
+
+  modal.classList.remove("hidden");
+
+  const closeModal = () => {
+    modal.classList.add("hidden");
+    // チェックボックスがチェックされている場合のみ、localStorageに保存
+    if (dontShowAgainCheckbox.checked) {
+      localStorage.setItem("dismissedAnnouncementId", announcementConfig.id);
+    }
+  };
+
+  closeBtn.addEventListener("click", closeModal);
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+}
+
+document.addEventListener("DOMContentLoaded", setupAnnouncement);
+/* ▲▲▲ お知らせモーダルの実行処理 ▲▲▲ */
