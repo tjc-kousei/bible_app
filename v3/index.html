@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聖書閲覧アプリ V3</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="../v2.png" type="image/x-icon">
+</head>
+<body>
+    <div id="transmode">
+        <div id="transmode_head">
+            <input type="text" id="abbre" class="bible_input" maxlength="2" oninput="this.value = (this.value).replace(/[^(0-9)(甲乙)]/g, '');" placeholder="書簡番号" autocomplete="off">
+            <div id="list">
+                <div><p>1 創</p><p>2 出エジ</p><p>3 レビ</p><p>4 民</p><p>5 申</p></div>
+                <div><p>6 ヨシュ</p><p>7 士</p><p>8 ルツ</p><p>9 サム上</p><p>10 サム下</p><p>11 列王上</p><p>12 列王下</p><p>13 歴代上</p><p>14 歴代下</p><p>15 エズ</p><p>16 ネヘ</p><p>17 エス</p></div>
+                <div><p>18 ヨブ</p><p>19 詩</p><p>20 箴</p><p>21 伝</p><p>22 雅</p></div>
+                <div><p>23 イザ</p><p>24 エレ</p><p>25 哀</p><p>26 エゼ</p><p>27 ダニ</p><p>28 ホセ</p><p>29 ヨエ</p><p>30 アモ</p><p>31 オバ</p><p>32 ヨナ</p><p>33 ミカ</p><p>34 ナホ</p><p>35 ハバ</p><p>36 ゼパ</p><p>37 ハガ</p><p>38 ゼカ</p><p>39 マラ</p></div>
+                <div><p>40 マタ</p><p>41 マル</p><p>42 ルカ</p><p>43 ヨハ</p></div>
+                <div><p>44 使徒</p></div>
+                <div><p>45 ロマ</p><p>46 Ⅰコリ</p><p>47 Ⅱコリ</p><p>48 ガラ</p><p>49 エペ</p><p>50 ピリ</p><p>51 コロ</p><p>52 Ⅰテサ</p><p>53 Ⅱテサ</p><p>54 Ⅰテモ</p><p>55 Ⅱテモ</p><p>56 テト</p><p>57 ピレ</p><p>58 ヘブ</p><p>59 ヤコ</p><p>60 Ⅰペテ</p><p>61 Ⅱペテ</p><p>62 Ⅰヨハ</p><p>63 Ⅱヨハ</p><p>64 Ⅲヨハ</p><p>65 ユダ</p></div>
+                <div><p>66 黙</p></div>
+            </div>
+            <input type="text" id="syou" class="bible_input" maxlength="3" oninput="this.value = (this.value).replace(/[^(0-9)(甲乙)]/g, '');" placeholder="章" autocomplete="off">
+            <span id="transmode_log"></span>
+        </div>
+        <!-- 結果出力用div -->
+        <div id="result"></div>
+    </div>
+
+    <!-- 検索機能のモーダル -->
+    <div id="search_modal">
+        <form id="search_modal_head" onsubmit="return false;">
+            <input type="text" id="search_text" autocomplete="off">
+            <label><input type="radio" name="option" checked>語句</label>
+            <label><input type="radio" name="option">節範囲表示</label>
+            <span id="log"></span>
+            <button onclick="enter()" hidden></button>
+        </form>
+        <div id="search_result"></div>
+    </div>
+
+    
+
+    <script src="./script.js"></script>
+</body>
+</html>

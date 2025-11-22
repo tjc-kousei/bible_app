@@ -1,0 +1,21 @@
+{
+    "name": "聖書閲覧アプリv4",
+    "short_name": "聖書アプリv4",
+    "description": "日中対訳聖書閲覧アプリケーションv4",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#3498db",
+    "icons": [
+      {
+        "src": "../v2.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "../v2.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }

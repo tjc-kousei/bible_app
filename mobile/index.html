@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聖書v.Mobile</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="../v2.png" type="image/x-icon">
+</head>
+<body>
+    <div class="closewrap">
+        <div class="close" onclick="if(!isLook)document.getElementById('modal').style.left = '0'; else document.getElementById('modal_syou').style.left = '0';">&cir;</div>
+        <div id="log"></div>
+        <div id="menu" onclick="document.getElementById('modal_menu').style.right='0';">&square;</div>
+    </div>
+    <div id="result">
+        
+    </div>
+
+    <!-- モーダルたち -->
+    <div id="modal">
+        <div class="closewrap">
+            <div id="close" class="close" onclick="document.getElementById('modal').style.left = '-150%';">&cross;</div>
+        </div>
+        <div id="yaku">
+            <div id="ot" class="looking" onclick="testament('ot','nt')">旧約</div>
+            <div id="nt" onclick="testament('nt','ot')">新約</div>
+        </div>
+        <div id="abbre">
+        </div>
+        <div id="lang">
+            <div id="japanese" class="looking" onclick="testament('japanese','chinese')">日本語</div>
+            <div id="chinese" onclick="testament('chinese','japanese')">中国語</div>
+        </div>
+    </div>
+    <div id="modal_syou">
+        <div class="closewrap">
+            <div class="close" onclick="document.getElementById('modal_syou').style.left = '-150%';">&cross;</div>
+            <div class="back" onclick="document.getElementById('modal_syou').style.left = '-150%'; document.getElementById('modal').style.left = '0'; isLook = false;">&larr;</div>
+        </div>
+        <div id="modal_syou_content"></div>
+    </div>
+    <div id="modal_menu">
+        <div class="closewrap">
+            <input type="range" id="fontchange" min="1.0" max="2.5" value="1.2" step="0.01" oninput="setStrSize();">
+        </div>
+        <div class="menu_close" onclick="document.getElementById('modal_menu').style.right = '-150%';">&cross;</div>
+        <div>&triangledown;語句検索&triangledown;</div>
+        <div class="input">
+            <input type="text" id="text_search" autocomplete="off">
+            <input type="button" value="検索" onclick='Goku(document.getElementById("text_search").value); document.getElementById("modal_menu").style.right="-150%";'>
+        </div>
+        <div>&triangledown;範囲検索&triangledown;</div>
+        <div class="input">
+            <input type="text" id="range_search" autocomplete="off">
+            <input type="button" value="検索" onclick='Hanyi(document.getElementById("range_search").value); document.getElementById("modal_menu").style.right="-150%";'>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+<<<<<<< HEAD
+</html>
+=======
+</html>
+>>>>>>> ff4be41 (git 適用)

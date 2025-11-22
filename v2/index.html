@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聖書閲覧アプリ</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="menu.css">
+    <link rel="shortcut icon" href="../v2.png" type="image/x-icon">
+    <link rel="manifest" href="manifest.json">
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GKCD04FG6H"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-GKCD04FG6H');
+</script>
+</head>
+<body>
+    <header>
+        <p id="Abbre"></p>
+        <p id="syou"></p>
+    </header>
+    <main>
+        <div id="output"></div>
+    </main>
+    <section>
+        <div class="sidebar">
+            <div class="section">
+            </div>
+            <div class="chapter">
+            </div>
+            <div class="letter">
+            </div>
+            <div class="Toggle active" id="humbarger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </section>
+
+    <div class="Toggle2 active2" accesskey="m">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <input type="checkbox" id="check_ruby" checked>
+    <label for="check_ruby" id="check_ruby_label"></label>
+    <input type="range" id="change_font-size" min="0.5" max="2.5" step="0.06" value="1.0" oninput="letter_size = Number(this.value); letterchange();">
+
+    <button id="searchbox" onclick="searchbox()"><label for="searchbox" accesskey="s">検索</label></button>
+    <div class="modal undisplay">
+        <input type="search" id="keyword" placeholder="語句検索" autocomplete="off">
+    </div>
+
+    <footer id="footer">
+        <details>
+            <summary>ルビ（ふりがな）間違報告フォーム</summary>
+            <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSf6umaI7YYkR13ZO4sIrUIQmZ_ldguGQFK-IKeFh5B5ERJdog/viewform?embedded=true" width="640" height="90vh" frameborder="0" marginheight="0" marginwidth="0">読み込んでいます…</iframe>
+        </details>
+        <p>Copyright (C) 2022 Kousei.H All Rights Reserved.</p>
+    </footer>
+
+    <div id="announcement-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 id="announcement-title"></h2>
+            <p id="announcement-message"></p>
+            <div class="dont-show-again-container">
+                <input type="checkbox" id="announcement-dont-show-again">
+                <label for="announcement-dont-show-again">今後このお知らせを表示しない</label>
+            </div>
+            <button id="announcement-close-btn">閉じる</button>
+        </div>
+    </div>
+    <script src="./script.js"></script>
+</body>
+</html>

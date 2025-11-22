@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>聖書閲覧アプリ</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="../v2.png" type="image/x-icon">
+    <link rel="manifest" href="manifest.json">
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GKCD04FG6H"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-GKCD04FG6H');
+</script>
+</head>
+<body>
+    <div id="left-sidebar" class="sidebar">
+        <span class="close-btn" onclick="toggleLeftMenu()">&times;</span>
+
+        <div class="user-data-section">
+            <div class="tabs">
+                <button class="tab-button active" onclick="showTab('history')">閲覧履歴</button>
+                <button class="tab-button" onclick="showTab('bookmarks')">ブックマーク</button>
+            </div>
+            <div id="history-content" class="tab-content active"><ul id="history-list"></ul></div>
+            <div id="bookmarks-content" class="tab-content"><ul id="bookmarks-list"></ul></div>
+        </div>
+
+        <div class="settings">
+            <h2>語句検索</h2>
+            <div class="control-group">
+                <input type="search" id="search-input" placeholder="例: 信仰 愛">
+                <button class="action-btn" onclick="searchBible()">検索</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="right-sidebar" class="sidebar">
+        <span class="close-btn" onclick="toggleRightMenu()">&times;</span>
+        <h2>設定</h2>
+        <div class="settings">
+            <div class="switch-container">
+                <span>ダークモード</span>
+                <label class="switch"><input type="checkbox" id="theme-toggle" onchange="toggleTheme()"><span class="slider"></span></label>
+            </div>
+            <div class="switch-container">
+                <span>日/中 表示切替</span>
+                <label class="switch"><input type="checkbox" id="lang-order-toggle" onchange="toggleLangOrder()"><span class="slider"></span></label>
+            </div>
+            <div class="switch-container">
+                <span>ルビ (日)</span>
+                <label class="switch"><input type="checkbox" id="ruby-jp-toggle" onchange="refreshDisplay()" checked><span class="slider"></span></label>
+            </div>
+             <div class="switch-container">
+                <span>ルビ (中)</span>
+                <label class="switch"><input type="checkbox" id="ruby-ch-toggle" onchange="refreshDisplay()" checked><span class="slider"></span></label>
+            </div>
+            <label for="fontSizeSlider" style="margin-top:15px;">文字サイズ:</label>
+            <input type="range" id="fontSizeSlider" min="12" max="32" value="16" oninput="changeFontSize(this.value)">
+        </div>
+        <div class="settings">
+            <button id="report-modal-open-btn" class="action-btn report-btn">
+                間違いを報告する
+            </button>
+        </div>
+    </div>
+
+    <div id="left-overlay" class="overlay" onclick="toggleLeftMenu()"></div>
+    <div id="right-overlay" class="overlay" onclick="toggleRightMenu()"></div>
+
+    <header>
+         <span class="action-icon header-icon-left" onclick="toggleLeftMenu()">&#x1F50D;</span>
+         <div class="header-controls">
+            <select id="book-select"></select>
+            <select id="chapter-select"></select>
+         </div>
+         <span class="action-icon header-icon-right" onclick="toggleRightMenu()">&#9776;</span>
+    </header>
+
+    <main id="main-content">
+        <div id="loader" class="loader">データを読み込んでいます...</div>
+        <div id="bible-content"></div>
+        <div id="search-results"></div>
+    </main>
+
+    <nav class="bottom-nav">
+        <button id="prev-book">&lt;&lt;</button><button id="prev-chapter">&lt;</button>
+        <button id="next-chapter">&gt;</button><button id="next-book">&gt;&gt;</button>
+    </nav>
+
+    <div id="report-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span id="report-modal-close-btn" class="modal-close-btn">&times;</span>
+            <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSf6umaI7YYkR13ZO4sIrUIQmZ_ldguGQFK-IKeFh5B5ERJdog/viewform?embedded=true" frameborder="0">読み込んでいます…</iframe>
+        </div>
+    </div>
+
+    <div id="announce-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="announce-header">
+                <h2>新機能追加のお知らせ</h2>
+                <span id="announce-modal-close-btn" class="modal-close-btn">&times;</span>
+            </div>
+            <div class="announce-content">
+                <p>いつもご利用いただきありがとうございます。最新バージョンでは以下の機能が追加・改善されました。</p>
+                <ul>
+                    <li>書簡・章選択ボタンを画面上部に移動し、操作性を改善しました。</li>
+                    <li>「ホーム画面に追加」でアドレスバーが非表示になり、よりアプリらしくなりました。以下、簡易的な画像です。</li>
+                    <div class="slideshow-container">
+                        <div class="slides">
+                            <div class="slide"><img src="assets/1.jpeg" alt="新UIの紹介画像1"></div>
+                            <div class="slide"><img src="assets/2.jpeg" alt="新UIの紹介画像2"></div>
+                            <div class="slide"><img src="assets/3.jpeg" alt="新UIの紹介画像3"></div>
+                            <div class="slide"><img src="assets/4.jpeg" alt="新UIの紹介画像4"></div>
+                            <div class="slide"><img src="assets/5.jpeg" alt="新UIの紹介画像5"></div>
+                        </div>
+                        <div class="slide-dots"></div>
+                    </div>
+                    <li>その他、複数の不具合を修正しました。</li>
+                </ul>
+
+
+                <p class="update-date">更新：2025/10/01</p>
+            </div>
+            <div class="announce-footer">
+                <button id="announce-close-temp-btn" class="action-btn secondary-btn">あとで表示</button>
+                <button id="announce-close-perm-btn" class="action-btn">今後は表示しない</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./script.js"></script>
+</body>
+</html>

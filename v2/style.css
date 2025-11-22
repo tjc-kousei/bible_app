@@ -1,0 +1,378 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+*::-webkit-scrollbar {
+    display: none;
+}
+body {
+    background-color: rgb(33,34,39);
+}
+main {
+    padding-top: 48px;
+    min-height: 90vh;
+}
+
+header {
+    position: fixed;
+    display: flex;
+    width: 100%;
+    height: 48px;
+    background-color: rgba(23,24,29,.5);
+    place-items: center;
+    justify-content: center;
+    flex-direction: row;
+}
+header p { color: white; }
+#Abbre, #Syou { display: inline-block;}
+.sidebar {
+    position: fixed;
+    display: flex;
+    top: 47px;
+    height: 90vh;
+    transition: .5s;
+}
+.sidebar button {
+    height: 50px;
+    width: 100%;
+    background-color: black;
+    color: white;
+    animation: left-to-right 1s;
+    animation-fill-mode: both;
+    transition: .35s ease-in-out;
+    border: solid 1px white;
+}
+.letter, .chapter, .section {
+    position: absolute;
+    width: 20vw;
+    height: 100%;
+    transition: .5s;
+    overflow: scroll;
+}
+.letter {
+    left: 0px;
+}
+.chapter {
+    left: 20vw;
+}
+.section {
+    left: 40vw;
+}
+
+#output {
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+}
+#output:empty {
+    display: none;
+}
+#wrapper {
+    margin: 20px;
+}
+.ch {
+    color: white;
+    border-bottom: solid 2px white;
+}
+.jp {
+    color: white;
+    margin-bottom: 5px;
+}
+#output>#wrapper:last-child>.ch {
+    border: none;
+}
+
+#check_ruby {
+    display: none;
+}
+#check_ruby_label{
+    position: fixed;
+    background-color: blue;
+    color: white;
+    top: 15px;
+    right: 55px;
+    transition: .5s;
+    border: solid 1px white;
+    border-radius: 100%;
+}
+#check_ruby_label::before {
+    content: "ON";
+}
+#check_ruby:checked ~ #check_ruby_label::before {
+    content: "OFF";
+}
+
+/* 文字サイズ変更用縦スライダー */
+#change_font-size {
+    position: fixed;
+    top: 130px;
+    right: -40px;
+    transform: rotate(-0.25turn);
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: transparent;
+}
+#change_font-size::-webkit-slider-runnable-track {
+    background: #efafda;
+    border-radius: 10px;
+}
+#change_font-size::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 2em;
+    height: 3em;
+    margin: -1em 0;
+    background-color: yellow;
+    border-radius: 20%;
+}
+
+#check_ruby_label:hover, #plus>button:hover, #minus>button:hover {
+    background-color: white;
+    color: black;
+    cursor: pointer;
+}
+.closed2 {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(40px);
+}
+
+.modal {
+    display: grid;
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    place-items: center;
+    background-color: rgba(0,0,0,.8);
+    z-index: 100;
+}
+#keyword {
+    width: 80vw;
+    height: 3rem;
+    font-size: 2rem;
+    text-align: center;
+}
+#searchbox {
+    position: fixed;
+    top: 10px;
+    right: 100px;
+    width: 3rem;
+    height: 2rem;
+    background-color: rgb(88, 243, 225);
+    outline: none;
+    transition: .5s;
+}
+#searchbox>label {
+    text-align: center;
+    font-size: 1rem;
+}
+.undisplay {
+    display: none;
+}
+
+/* footer */
+footer{
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    color: white;
+}
+footer details {
+    border: 1px solid #ccc;
+    text-align: center;
+}
+footer details summary {
+    text-align: left;
+}
+footer details table{
+    width: 100%;
+}
+footer details table td.date{
+    vertical-align: top;
+}
+footer details iframe {
+    width: 100%;
+    height: 90vh;
+}
+
+@keyframes left-to-right {
+    0% {
+        transform: scale(.8);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .letter, .chapter, .section {
+        width: 33.3vw;
+    }
+    .closed {
+        left: -33.3vw !important;
+    }
+    .letter {
+        left: 0px;
+    }
+    .chapter {
+        left: 33.3vw;
+    }
+    .section {
+        left: 66.6vw;
+    }
+}
+
+@media screen and (max-width: 1366px) and (max-height:1024px) {
+    .sidebar button {
+        height: 6rem;
+        font-size: 1.3rem;
+    }
+}
+@media screen and (max-width: 1024px) and (max-height:1366px) {
+    .sidebar button {
+        height: 6rem;
+        font-size: 1.3rem;
+    }
+}
+
+/* ルビ全体の行間や余白 */
+.jp, .ch {
+    line-height: 1.8;
+    margin-bottom: 8px;
+}
+
+/* ルビタグ全体の位置と揃え */
+ruby {
+    ruby-align: start;
+    ruby-position: over;
+}
+
+/* 日本語ふりがな */
+rt.furigana {
+    font-size: 0.6em;
+    color: #ffd966; /* 金色 */
+    font-weight: normal;
+    letter-spacing: 0.05em;
+}
+
+/* ピンイン（中国語ルビ） */
+rt.pinyin {
+    font-size: 0.6em;
+    color: #ff9999; /* ピンク */
+    font-style: italic;
+    letter-spacing: 0.05em;
+}
+
+/* 本文の漢字部分 */
+rb {
+    font-size: 1em;
+}
+
+/* 小画面調整 */
+@media screen and (max-width: 600px) {
+    rt.furigana,
+    rt.pinyin {
+        font-size: 0.7em;
+    }
+}
+
+/* 行間を広げて土台の余裕をつくる */
+.jp, .ch { line-height: 2.2; }
+
+/* ルビの基本調整（小さめ＋字間ゆるめ） */
+ruby { ruby-position: over; ruby-align: start; }
+rt {
+  font-size: .55em;
+  line-height: 1;
+  letter-spacing: .08em;       /* ルビ同士の詰まり感を軽減 */
+  text-shadow: 0 0 2px rgba(0,0,0,.35);
+}
+
+/* 上下の“近さ”を解消：ルビを少し上に逃がす */
+rt { transform: translateY(-0.18em); }
+
+/* ルビの左右に微妙なゆとりを作る（横の窮屈さ対策） */
+ruby { margin: 0 .06em; }
+rb   { padding: 0 .04em; }
+
+/* 色分けはそのまま（必要なら色だけ調整） */
+rt.furigana { color:#f2d26b; }
+rt.pinyin   { color:#f199a2; font-style: italic; }
+
+/* モバイルは衝突防止で少しだけ戻す */
+@media (max-width:600px){
+  .jp, .ch { line-height: 2.3; }
+  rt { transform: translateY(-0.14em); font-size: .6em; }
+}
+
+/* ▼▼▼ お知らせモーダル用CSS ▼▼▼ */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: rgb(43, 44, 49);
+    color: white;
+    padding: 25px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    text-align: center;
+}
+
+.modal-content h2 {
+    margin-bottom: 15px;
+    color: #88ddff;
+}
+
+.modal-content p {
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.modal-content button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.modal-content button:hover {
+    background-color: #0056b3;
+}
+
+.dont-show-again-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+    cursor: pointer;
+}
+
+.dont-show-again-container input {
+    margin-right: 8px;
+    transform: scale(1.2);
+}
+
+/* モーダルを非表示にするクラス */
+.modal-overlay.hidden {
+    display: none;
+}
+/* ▲▲▲ お知らせモーダル用CSS ▲▲▲ */
