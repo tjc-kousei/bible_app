@@ -1,6 +1,7 @@
 bible_offline
 nodejs_output
 chinese.csv
+chinese_compact_corrected.csv
 compact_chinese.mjs
 Data(hira) - archive.csv
 gokusearch.html
