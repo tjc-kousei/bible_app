@@ -4,6 +4,11 @@ let lastViewed = { book: "", chapter: "" };
 let history = [];
 let bookmarks = [];
 
+// --- IndexedDB 設定 ---
+const DB_NAME = "BibleAppDB";
+const DB_VERSION = 1;
+const DB_STORE_NAME = "bible_store";
+
 // --- お知らせのバージョンID ---
 const LATEST_ANNOUNCEMENT_ID = "announce-2025-10-01";
 
@@ -154,16 +159,163 @@ document.addEventListener("DOMContentLoaded", () => {
   applyLangOrder();
   setupEventListeners();
   handleAnnouncements();
-  loadBibleData()
-    .then(() => {
-      document.getElementById("loader").style.display = "none";
-      populateBooks();
-    })
-    .catch((err) => {
+
+  initDB().then(async (db) => {
+    try {
+      const storedData = await getFromDB(db, "bible_full_data");
+
+      if (storedData) {
+        bible_data = storedData.parsed;
+        document.getElementById("loader").style.display = "none";
+        populateBooks();
+
+        if (navigator.onLine) {
+          checkForUpdates(db, storedData);
+        }
+      } else {
+        await fetchAndSaveData(db);
+      }
+    } catch (err) {
+      console.error(err);
       document.getElementById("loader").innerText =
         "データの読み込みに失敗しました: " + err;
-    });
+    }
+  });
 });
+
+// --- IndexedDB Helper Functions ---
+function initDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onerror = (e) => reject("DB Open Error: " + e.target.error);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(DB_STORE_NAME)) {
+        db.createObjectStore(DB_STORE_NAME, { keyPath: "id" });
+      }
+    };
+    request.onsuccess = (e) => resolve(e.target.result);
+  });
+}
+
+function getFromDB(db, id) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([DB_STORE_NAME], "readonly");
+    const store = transaction.objectStore(DB_STORE_NAME);
+    const request = store.get(id);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function saveToDB(db, item) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([DB_STORE_NAME], "readwrite");
+    const store = transaction.objectStore(DB_STORE_NAME);
+    const request = store.put(item);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// --- データ取得・同期ロジック ---
+async function fetchAndSaveData(db) {
+  const CSV_PATHS = { hira: "../Data(hira).csv", zh: "../chinese_compact.csv" };
+
+  const [hiraText, zhText] = await Promise.all([
+    fetchCSV(CSV_PATHS.hira),
+    fetchCSV(CSV_PATHS.zh),
+  ]);
+
+  const parsedData = processData(hiraText, zhText);
+
+  const dataRecord = {
+    id: "bible_full_data",
+    hiraRaw: hiraText,
+    zhRaw: zhText,
+    parsed: parsedData,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await saveToDB(db, dataRecord);
+
+  bible_data = parsedData;
+  document.getElementById("loader").style.display = "none";
+  populateBooks();
+}
+
+async function checkForUpdates(db, storedData) {
+  const CSV_PATHS = { hira: "../Data(hira).csv", zh: "../chinese_compact.csv" };
+
+  try {
+    const [newHiraText, newZhText] = await Promise.all([
+      fetchCSV(CSV_PATHS.hira),
+      fetchCSV(CSV_PATHS.zh),
+    ]);
+
+    const isHiraChanged = newHiraText !== storedData.hiraRaw;
+    const isZhChanged = newZhText !== storedData.zhRaw;
+
+    if (isHiraChanged || isZhChanged) {
+      const newParsedData = processData(newHiraText, newZhText);
+
+      const newDataRecord = {
+        id: "bible_full_data",
+        hiraRaw: newHiraText,
+        zhRaw: newZhText,
+        parsed: newParsedData,
+        updatedAt: new Date().toISOString(),
+      };
+      await saveToDB(db, newDataRecord);
+
+      bible_data = newParsedData;
+      refreshDisplay();
+
+      const loader = document.getElementById("loader");
+      loader.innerText = "データを最新に更新しました";
+      loader.style.display = "block";
+      setTimeout(() => {
+        loader.style.display = "none";
+      }, 2000);
+    }
+  } catch (err) {
+    console.log("Update check failed:", err);
+  }
+}
+
+function processData(hiraText, zhText) {
+  let data = csvTo2D(hiraText);
+  const zh2d = csvTo2D(zhText);
+  for (let i = 1; i < data.length; i++) {
+    data[i].push(zh2d[i]?.[0] ?? "");
+  }
+  return data;
+}
+
+// --- 基本機能関数 ---
+async function fetchCSV(url) {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok)
+    throw new Error(`Fetch失敗: ${url} (${res.status} ${res.statusText})`);
+  return await res.text();
+}
+
+function csvTo2D(text) {
+  return text
+    .replace(/\uFEFF/g, "")
+    .split(/\r?\n/)
+    .filter((line) => line.trim() !== "")
+    .map((line) => line.split(","));
+}
+
+function compactToRuby(str) {
+  return !str
+    ? ""
+    : str.replace(
+        /(.)\(([^()]+)\)/g,
+        "<ruby>$1<rt class='pinyin'>$2</rt></ruby>"
+      );
+}
 
 function setupEventListeners() {
   document
@@ -180,11 +332,11 @@ function setupEventListeners() {
     .addEventListener("click", navigateBookChapter.bind(null, 1, false));
   document.getElementById("book-select").addEventListener("change", () => {
     updateChapters();
-    displayChapter(false); // サイドバーを閉じないようにfalseを渡す
+    displayChapter(false);
   });
   document
     .getElementById("chapter-select")
-    .addEventListener("change", () => displayChapter(false)); // サイドバーを閉じないようにfalseを渡す
+    .addEventListener("change", () => displayChapter(false));
 
   const reportModal = document.getElementById("report-modal");
   const openBtn = document.getElementById("report-modal-open-btn");
@@ -215,7 +367,6 @@ function setupEventListeners() {
   closeTempBtn.addEventListener("click", closeAnnouncementTemp);
   closePermBtn.addEventListener("click", closeAnnouncementPerm);
 
-  // ★★★ お知らせモーダルのスライドショー処理 ★★★
   const slides = document.querySelector(".slides");
   const slideImages = document.querySelectorAll(".slide");
   const dotsContainer = document.querySelector(".slide-dots");
@@ -224,7 +375,6 @@ function setupEventListeners() {
     let currentIndex = 0;
     const totalSlides = slideImages.length;
 
-    // ドットを生成
     for (let i = 0; i < totalSlides; i++) {
       const dot = document.createElement("span");
       dot.classList.add("dot");
@@ -243,13 +393,11 @@ function setupEventListeners() {
       currentIndex = index;
     }
 
-    // 自動スライド（5秒ごと）
     setInterval(() => {
       let nextIndex = (currentIndex + 1) % totalSlides;
       goToSlide(nextIndex);
     }, 5000);
 
-    // 初期表示
     goToSlide(0);
   }
 }
@@ -282,6 +430,7 @@ function toggleRightMenu() {
     document.getElementById("left-overlay").classList.remove("open");
   }
 }
+
 function isSidebarOpen() {
   return (
     document.getElementById("left-sidebar").classList.contains("open") ||
@@ -289,42 +438,12 @@ function isSidebarOpen() {
   );
 }
 
-async function loadBibleData() {
-  const CSV_PATHS = { hira: "../Data(hira).csv", zh: "../chinese_compact.csv" };
-  const hiraText = await fetchCSV(CSV_PATHS.hira);
-  bible_data = csvTo2D(hiraText);
-  const zhText = await fetchCSV(CSV_PATHS.zh);
-  const zh2d = csvTo2D(zhText);
-  for (let i = 1; i < bible_data.length; i++) {
-    bible_data[i].push(zh2d[i]?.[0] ?? "");
-  }
-  return bible_data;
-}
-async function fetchCSV(url) {
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok)
-    throw new Error(`Fetch失敗: ${url} (${res.status} ${res.statusText})`);
-  return await res.text();
-}
-function csvTo2D(text) {
-  return text
-    .replace(/\uFEFF/g, "")
-    .split(/\r?\n/)
-    .filter((line) => line.trim() !== "")
-    .map((line) => line.split(","));
-}
-function compactToRuby(str) {
-  return !str
-    ? ""
-    : str.replace(
-        /(.)\(([^()]+)\)/g,
-        "<ruby>$1<rt class='pinyin'>$2</rt></ruby>"
-      );
-}
-
 function populateBooks() {
   const bookSelect = document.getElementById("book-select");
   const chapterSelect = document.getElementById("chapter-select");
+
+  bookSelect.innerHTML = "";
+
   bookList.forEach((abbr) => {
     const option = document.createElement("option");
     option.value = abbr;
@@ -461,6 +580,7 @@ function loadUserData() {
   history = JSON.parse(localStorage.getItem("bibleHistory")) || [];
   bookmarks = JSON.parse(localStorage.getItem("bibleBookmarks")) || [];
 }
+
 function addHistory(book, chapter) {
   const existingIndex = history.findIndex(
     (item) => item.book === book && item.chapter === chapter
@@ -474,6 +594,7 @@ function addHistory(book, chapter) {
   }
   localStorage.setItem("bibleHistory", JSON.stringify(history));
 }
+
 function toggleBookmark(verseRef) {
   const index = bookmarks.indexOf(verseRef);
   if (index > -1) {
@@ -485,6 +606,7 @@ function toggleBookmark(verseRef) {
   localStorage.setItem("bibleBookmarks", JSON.stringify(bookmarks));
   refreshDisplay();
 }
+
 function renderHistory() {
   const list = document.getElementById("history-list");
   if (history.length === 0) {
@@ -500,6 +622,7 @@ function renderHistory() {
     )
     .join("");
 }
+
 function renderBookmarks() {
   const list = document.getElementById("bookmarks-list");
   if (bookmarks.length === 0) {
@@ -516,6 +639,7 @@ function renderBookmarks() {
     })
     .join("");
 }
+
 function showTab(tabName) {
   document
     .querySelectorAll(".tab-content")
@@ -541,20 +665,24 @@ function toggleTheme() {
   document.body.setAttribute("data-theme", newTheme);
   localStorage.setItem("theme", newTheme);
 }
+
 function applyTheme() {
   const savedTheme = localStorage.getItem("theme") || "light";
   document.body.setAttribute("data-theme", savedTheme);
   document.getElementById("theme-toggle").checked = savedTheme === "dark";
 }
+
 function toggleLangOrder() {
   const isSwapped = document.getElementById("lang-order-toggle").checked;
   localStorage.setItem("langOrderSwapped", isSwapped);
   refreshDisplay();
 }
+
 function applyLangOrder() {
   const isSwapped = localStorage.getItem("langOrderSwapped") === "true";
   document.getElementById("lang-order-toggle").checked = isSwapped;
 }
+
 function changeFontSize(size) {
   document.getElementById("main-content").style.fontSize = size + "px";
 }
@@ -614,6 +742,7 @@ function searchBible() {
     changeFontSize(document.getElementById("fontSizeSlider").value);
   }, 10);
 }
+
 function highlightKeywords(text, keywords) {
   let highlightedText = text;
   keywords.forEach((kw) => {

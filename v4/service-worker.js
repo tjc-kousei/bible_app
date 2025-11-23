@@ -1,16 +1,15 @@
-const CACHE_NAME = "bible-viewer-v1.0.0";
+// Service Workerの更新
+const CACHE_NAME = "bible-viewer-v2.0.0"; // バージョンを上げて古いキャッシュを破棄させる
 const urlsToCache = [
   "./",
   "./index.html",
   "./script.js",
   "./style.css",
   "../v2.png",
-  // CSVファイルもキャッシュに追加
-  "../Data(hira).csv",
-  "../chinese_compact.csv",
+  // CSVファイルはここから削除し、IndexedDBで管理します
 ];
 
-// インストール: 初回アクセス時にリソースをキャッシュ
+// インストール
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -20,21 +19,16 @@ self.addEventListener("install", (event) => {
   );
 });
 
-// フェッチ: リソース要求時にキャッシュを優先して利用
+// フェッチ
 self.addEventListener("fetch", (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
-      // キャッシュにあればそれを返す
-      if (response) {
-        return response;
-      }
-      // なければネットワークから取得
-      return fetch(event.request);
+      return response || fetch(event.request);
     })
   );
 });
 
-// アクティベート: 古いキャッシュを削除
+// アクティベート
 self.addEventListener("activate", (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
