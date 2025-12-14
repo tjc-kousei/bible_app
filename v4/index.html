@@ -33,8 +33,8 @@
         <div class="settings">
             <h2>語句検索</h2>
             <div class="control-group">
-                <input type="search" id="search-input" placeholder="例: 信仰 愛">
-                <button class="action-btn" onclick="searchBible()">検索</button>
+                <button class="action-btn" onclick="openSearchModal()">🔍 検索ウィンドウを開く</button>
+                <p style="font-size:0.8em; color:#666; margin-top:5px;">※検索結果を保持したまま閲覧できます</p>
             </div>
         </div>
     </div>
@@ -93,13 +93,38 @@
     <main id="main-content">
         <div id="loader" class="loader">データを読み込んでいます...</div>
         <div id="bible-content"></div>
-        <div id="search-results"></div>
-    </main>
+        </main>
 
     <nav class="bottom-nav">
         <button id="prev-book">&lt;&lt;</button><button id="prev-chapter">&lt;</button>
         <button id="next-chapter">&gt;</button><button id="next-book">&gt;&gt;</button>
     </nav>
+
+    <div id="search-modal" class="modal-overlay">
+        <div class="modal-content search-modal-content">
+            <div class="modal-header">
+                <h2>語句検索</h2>
+                <span class="modal-close-btn" onclick="closeSearchModal()">&times;</span>
+            </div>
+            <div class="search-controls">
+                <input type="search" id="modal-search-input" placeholder="例: 信仰 愛">
+
+                <div class="search-options">
+                    <label>結果の表示:</label>
+                    <select id="search-display-mode" onchange="searchBible(false)"> <option value="both-jp">併記 (日)</option>
+                        <option value="both-ch">併記 (中)</option>
+                        <option value="jp-only">日本語のみ</option>
+                        <option value="ch-only">中国語のみ</option>
+                    </select>
+                </div>
+
+                <button class="action-btn" onclick="searchBible(true)">検索</button>
+            </div>
+            <div id="modal-search-results" class="search-results-container">
+                <p class="empty-message" style="margin-top:20px;">検索したい語句を入力してください。</p>
+            </div>
+        </div>
+    </div>
 
     <div id="report-modal" class="modal-overlay">
         <div class="modal-content">
@@ -117,12 +142,11 @@
             <div class="announce-content">
                 <p>いつもご利用ありがとうございます。アプリがより便利に進化しました！</p>
                 <ul style="line-height: 1.8;">
-                    <li><strong>👁️ 表示切替機能：</strong> 日本語のみ、中国語のみの表示が可能になりました。設定メニューから変更できます。</li>
-                    <li><strong>🇨🇳 書巻名の中国語対応：</strong> 中国語表示モードの際、書巻選択リストも中国語になります。</li>
-                    <li><strong>🎨 デザイン調整：</strong> 文字サイズを大きくし、スライダーのデザインを一新しました。また、行間のバランスを調整しました。</li>
-                    <li><strong>💾 設定の保存：</strong> 文字サイズや表示モードが保存され、次回起動時も維持されるようになりました。</li>
+                    <li><strong>🔍 検索機能の強化：</strong> 検索画面を独立したウィンドウ（モーダル）にしました。これにより、検索結果を残したまま聖書本文を行き来できるようになりました。また、検索結果の表示モード（日本語のみ等）も選べます。</li>
+                    <li><strong>🐛 バグ修正：</strong> ブックマークから移動した際、その箇所の文字が表示されない問題を修正しました。</li>
+                    <li><strong>✨ デザイン調整：</strong> アニメーションを追加し、よりスムーズな操作感を実現しました。</li>
                 </ul>
-                <p class="update-date">更新：2025/12/02</p>
+                <p class="update-date">更新：2025/12/15</p>
             </div>
             <div class="announce-footer">
                 <button id="announce-close-temp-btn" class="action-btn secondary-btn">あとで表示</button>

@@ -4,13 +4,17 @@ let lastViewed = { book: "", chapter: "" };
 let history = [];
 let bookmarks = [];
 
+// 検索結果を保持するための変数
+let lastSearchResults = [];
+let lastSearchQuery = "";
+
 // --- IndexedDB 設定 ---
 const DB_NAME = "BibleAppDB";
 const DB_VERSION = 1;
 const DB_STORE_NAME = "bible_store";
 
 // --- お知らせのバージョンID (更新があるとIDを変える) ---
-const LATEST_ANNOUNCEMENT_ID = "announce-2025-12-02-update";
+const LATEST_ANNOUNCEMENT_ID = "announce-2025-12-15-update";
 
 // --- データ定義 ---
 const bookChapters = {
@@ -225,7 +229,7 @@ const bookFullNamesCh = {
 // --- 初期化処理 ---
 document.addEventListener("DOMContentLoaded", () => {
   loadUserData();
-  loadSettings(); // 設定（文字サイズ、表示モード）を読み込む
+  loadSettings();
   applyTheme();
 
   setupEventListeners();
@@ -234,15 +238,11 @@ document.addEventListener("DOMContentLoaded", () => {
   initDB().then(async (db) => {
     try {
       const storedData = await getFromDB(db, "bible_full_data");
-
       if (storedData) {
         bible_data = storedData.parsed;
         document.getElementById("loader").style.display = "none";
         populateBooks();
-
-        if (navigator.onLine) {
-          checkForUpdates(db, storedData);
-        }
+        if (navigator.onLine) checkForUpdates(db, storedData);
       } else {
         await fetchAndSaveData(db);
       }
@@ -292,14 +292,11 @@ function saveToDB(db, item) {
 // --- データ取得・同期ロジック ---
 async function fetchAndSaveData(db) {
   const CSV_PATHS = { hira: "../Data(hira).csv", zh: "../chinese_compact.csv" };
-
   const [hiraText, zhText] = await Promise.all([
     fetchCSV(CSV_PATHS.hira),
     fetchCSV(CSV_PATHS.zh),
   ]);
-
   const parsedData = processData(hiraText, zhText);
-
   const dataRecord = {
     id: "bible_full_data",
     hiraRaw: hiraText,
@@ -307,9 +304,7 @@ async function fetchAndSaveData(db) {
     parsed: parsedData,
     updatedAt: new Date().toISOString(),
   };
-
   await saveToDB(db, dataRecord);
-
   bible_data = parsedData;
   document.getElementById("loader").style.display = "none";
   populateBooks();
@@ -317,19 +312,13 @@ async function fetchAndSaveData(db) {
 
 async function checkForUpdates(db, storedData) {
   const CSV_PATHS = { hira: "../Data(hira).csv", zh: "../chinese_compact.csv" };
-
   try {
     const [newHiraText, newZhText] = await Promise.all([
       fetchCSV(CSV_PATHS.hira),
       fetchCSV(CSV_PATHS.zh),
     ]);
-
-    const isHiraChanged = newHiraText !== storedData.hiraRaw;
-    const isZhChanged = newZhText !== storedData.zhRaw;
-
-    if (isHiraChanged || isZhChanged) {
+    if (newHiraText !== storedData.hiraRaw || newZhText !== storedData.zhRaw) {
       const newParsedData = processData(newHiraText, newZhText);
-
       const newDataRecord = {
         id: "bible_full_data",
         hiraRaw: newHiraText,
@@ -338,16 +327,12 @@ async function checkForUpdates(db, storedData) {
         updatedAt: new Date().toISOString(),
       };
       await saveToDB(db, newDataRecord);
-
       bible_data = newParsedData;
       refreshDisplay();
-
       const loader = document.getElementById("loader");
       loader.innerText = "データを最新に更新しました";
       loader.style.display = "block";
-      setTimeout(() => {
-        loader.style.display = "none";
-      }, 2000);
+      setTimeout(() => (loader.style.display = "none"), 2000);
     }
   } catch (err) {
     console.log("Update check failed:", err);
@@ -366,8 +351,7 @@ function processData(hiraText, zhText) {
 // --- 基本機能関数 ---
 async function fetchCSV(url) {
   const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok)
-    throw new Error(`Fetch失敗: ${url} (${res.status} ${res.statusText})`);
+  if (!res.ok) throw new Error(`Fetch失敗: ${url}`);
   return await res.text();
 }
 
@@ -375,8 +359,8 @@ function csvTo2D(text) {
   return text
     .replace(/\uFEFF/g, "")
     .split(/\r?\n/)
-    .filter((line) => line.trim() !== "")
-    .map((line) => line.split(","));
+    .filter((l) => l.trim() !== "")
+    .map((l) => l.split(","));
 }
 
 function compactToRuby(str) {
@@ -410,38 +394,46 @@ function setupEventListeners() {
     .addEventListener("change", () => displayChapter(false));
 
   const reportModal = document.getElementById("report-modal");
-  const openBtn = document.getElementById("report-modal-open-btn");
-  const closeBtn = document.getElementById("report-modal-close-btn");
-  openBtn.addEventListener("click", () => {
-    reportModal.classList.add("open");
-    if (isSidebarOpen()) toggleRightMenu();
-  });
-  closeBtn.addEventListener("click", () => {
-    reportModal.classList.remove("open");
-  });
-  reportModal.addEventListener("click", (event) => {
-    if (event.target === reportModal) reportModal.classList.remove("open");
+  document
+    .getElementById("report-modal-open-btn")
+    .addEventListener("click", () => {
+      reportModal.classList.add("open");
+      if (isSidebarOpen()) toggleRightMenu();
+    });
+  document
+    .getElementById("report-modal-close-btn")
+    .addEventListener("click", () => reportModal.classList.remove("open"));
+  reportModal.addEventListener("click", (e) => {
+    if (e.target === reportModal) reportModal.classList.remove("open");
   });
 
+  // お知らせ関連
   const announceModal = document.getElementById("announce-modal");
-  const closeXBtn = document.getElementById("announce-modal-close-btn");
-  const closeTempBtn = document.getElementById("announce-close-temp-btn");
-  const closePermBtn = document.getElementById("announce-close-perm-btn");
-  const closeAnnouncementTemp = () => {
-    announceModal.classList.remove("open");
-  };
-  const closeAnnouncementPerm = () => {
+  const closeFunc = () => announceModal.classList.remove("open");
+  const closePermFunc = () => {
     localStorage.setItem("seenAnnouncementId", LATEST_ANNOUNCEMENT_ID);
     announceModal.classList.remove("open");
   };
-  closeXBtn.addEventListener("click", closeAnnouncementTemp);
-  closeTempBtn.addEventListener("click", closeAnnouncementTemp);
-  closePermBtn.addEventListener("click", closeAnnouncementPerm);
+  document
+    .getElementById("announce-modal-close-btn")
+    .addEventListener("click", closeFunc);
+  document
+    .getElementById("announce-close-temp-btn")
+    .addEventListener("click", closeFunc);
+  document
+    .getElementById("announce-close-perm-btn")
+    .addEventListener("click", closePermFunc);
+
+  // 検索モーダルEnterキー対応
+  document
+    .getElementById("modal-search-input")
+    .addEventListener("keypress", (e) => {
+      if (e.key === "Enter") searchBible(true);
+    });
 }
 
 function handleAnnouncements() {
-  const seenId = localStorage.getItem("seenAnnouncementId");
-  if (seenId !== LATEST_ANNOUNCEMENT_ID) {
+  if (localStorage.getItem("seenAnnouncementId") !== LATEST_ANNOUNCEMENT_ID) {
     document.getElementById("announce-modal").classList.add("open");
   }
 }
@@ -475,21 +467,16 @@ function isSidebarOpen() {
   );
 }
 
-// --- 書巻リスト作成 (言語設定に応じて切り替え) ---
 function populateBooks() {
   const bookSelect = document.getElementById("book-select");
   const chapterSelect = document.getElementById("chapter-select");
-
-  // 現在の表示モードを取得し、中国語優先または中国語のみなら中国語名を使う
   const displayMode = document.getElementById("display-mode-select").value;
   const useChineseNames =
     displayMode === "ch-only" || displayMode === "both-ch";
   const nameMap = useChineseNames ? bookFullNamesCh : bookFullNamesJp;
 
-  const currentBookVal = bookSelect.value; // 選択状態を維持するため取得
-
+  const currentBookVal = bookSelect.value;
   bookSelect.innerHTML = "";
-
   bookList.forEach((abbr) => {
     const option = document.createElement("option");
     option.value = abbr;
@@ -497,30 +484,20 @@ function populateBooks() {
     bookSelect.appendChild(option);
   });
 
-  // もし前に選択していたものが存在すればセット、なければ履歴またはデフォルト
   if (currentBookVal && bookList.includes(currentBookVal)) {
     bookSelect.value = currentBookVal;
-  } else {
-    const lastHistory = history[0];
-    if (lastHistory) {
-      bookSelect.value = lastHistory.book;
-    }
+  } else if (history[0]) {
+    bookSelect.value = history[0].book;
   }
 
-  // 章の更新は必須
   updateChapters();
 
-  // 現在表示されている章を再描画（タイトル更新などのため）
-  const lastHistory = history[0];
   const targetChapter = currentBookVal
     ? chapterSelect.value || 1
-    : lastHistory
-    ? lastHistory.chapter
+    : history[0]
+    ? history[0].chapter
     : 1;
   if (chapterSelect.value === "") chapterSelect.value = targetChapter;
-
-  // 初期ロード時のみここから描画、それ以外はchangeイベント等に任せるが
-  // populateが呼ばれるのはデータロード時と言語切り替え時
   displayChapter(false, bookSelect.value, targetChapter);
 }
 
@@ -539,19 +516,22 @@ function updateChapters() {
     option.textContent = i + "章";
     chapterSelect.appendChild(option);
   }
-  if (currentChapter <= totalChapters) {
-    chapterSelect.value = currentChapter;
-  }
+  if (currentChapter <= totalChapters) chapterSelect.value = currentChapter;
 }
 
-function displayChapter(closeSidebar = true, book = null, chapter = null) {
+function displayChapter(
+  closeSidebar = true,
+  book = null,
+  chapter = null,
+  targetVerse = null
+) {
   if (closeSidebar && isSidebarOpen()) {
     if (document.getElementById("left-sidebar").classList.contains("open"))
       toggleLeftMenu();
     if (document.getElementById("right-sidebar").classList.contains("open"))
       toggleRightMenu();
   }
-  document.getElementById("search-results").innerHTML = "";
+
   const contentDiv = document.getElementById("bible-content");
   contentDiv.innerHTML = "";
   const bookSelect = document.getElementById("book-select");
@@ -565,10 +545,8 @@ function displayChapter(closeSidebar = true, book = null, chapter = null) {
     updateChapters();
   }
   chapterSelect.value = targetChapter;
-
   lastViewed = { book: targetBook, chapter: parseInt(targetChapter) };
 
-  // タイトルも言語に合わせて更新
   const displayMode = document.getElementById("display-mode-select").value;
   const useChineseNames =
     displayMode === "ch-only" || displayMode === "both-ch";
@@ -595,7 +573,6 @@ function displayChapter(closeSidebar = true, book = null, chapter = null) {
         showChRuby ? compactToRuby(row[6]) : row[2]
       }</div>`;
 
-      // 表示モードに応じた出し分け
       let verseLangs = "";
       switch (displayMode) {
         case "jp-only":
@@ -604,10 +581,9 @@ function displayChapter(closeSidebar = true, book = null, chapter = null) {
         case "ch-only":
           verseLangs = chDiv;
           break;
-        case "both-ch": // 中国語優先
+        case "both-ch":
           verseLangs = chDiv + jpDiv;
           break;
-        case "both-jp": // 日本語優先
         default:
           verseLangs = jpDiv + chDiv;
           break;
@@ -617,13 +593,33 @@ function displayChapter(closeSidebar = true, book = null, chapter = null) {
       const bookmarkIcon = `<i class="bookmark-icon" onclick="toggleBookmark('${verseRef}')">${
         isBookmarked ? "★" : "☆"
       }</i>`;
-      contentHTML += `<div class="verse-container"><div class="verse-ref">${verseNum}${bookmarkIcon}</div><div class="verse-content">${verseLangs}</div></div>`;
+
+      let animStyle = `animation-delay: ${Math.min(
+        (verseNum - 1) * 0.03,
+        0.5
+      )}s`;
+
+      if (targetVerse && parseInt(verseNum) === parseInt(targetVerse)) {
+        animStyle = "animation: none; opacity: 1;";
+      }
+
+      contentHTML += `<div id="verse-${verseNum}" class="verse-container" style="${animStyle}"><div class="verse-ref">${verseNum}${bookmarkIcon}</div><div class="verse-content">${verseLangs}</div></div>`;
     }
   }
   contentDiv.innerHTML = contentHTML;
-  window.scrollTo(0, 0);
 
-  // 設定されたフォントサイズを適用
+  if (targetVerse) {
+    const targetEl = document.getElementById(`verse-${targetVerse}`);
+    if (targetEl) {
+      setTimeout(() => {
+        targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        targetEl.classList.add("highlight-target");
+      }, 50);
+    }
+  } else {
+    window.scrollTo(0, 0);
+  }
+
   const savedSize = localStorage.getItem("fontSize") || "32";
   changeFontSize(savedSize);
 }
@@ -632,24 +628,24 @@ function navigateBookChapter(direction, isBook) {
   let { book, chapter } = lastViewed;
   if (isBook) {
     const newBookIndex = bookList.indexOf(book) + direction;
-    if (newBookIndex >= 0 && newBookIndex < bookList.length) {
+    if (newBookIndex >= 0 && newBookIndex < bookList.length)
       displayChapter(true, bookList[newBookIndex], 1);
-    }
   } else {
     const newChapter = chapter + direction;
-    if (newChapter > 0 && newChapter <= bookChapters[book]) {
+    if (newChapter > 0 && newChapter <= bookChapters[book])
       displayChapter(true, book, newChapter);
-    } else if (newChapter <= 0) {
+    else if (newChapter <= 0) {
       const newBookIndex = bookList.indexOf(book) - 1;
-      if (newBookIndex >= 0) {
-        const prevBook = bookList[newBookIndex];
-        displayChapter(true, prevBook, bookChapters[prevBook]);
-      }
+      if (newBookIndex >= 0)
+        displayChapter(
+          true,
+          bookList[newBookIndex],
+          bookChapters[bookList[newBookIndex]]
+        );
     } else {
       const newBookIndex = bookList.indexOf(book) + 1;
-      if (newBookIndex < bookList.length) {
+      if (newBookIndex < bookList.length)
         displayChapter(true, bookList[newBookIndex], 1);
-      }
     }
   }
 }
@@ -671,30 +667,24 @@ function loadUserData() {
   bookmarks = JSON.parse(localStorage.getItem("bibleBookmarks")) || [];
 }
 
-// --- 設定の保存・読み込み (文字サイズ・表示モード) ---
 function loadSettings() {
-  // フォントサイズ
-  const savedSize = localStorage.getItem("fontSize");
-  if (savedSize) {
-    document.getElementById("fontSizeSlider").value = savedSize;
-    document.getElementById("font-size-display").innerText = savedSize;
-  } else {
-    // デフォルト
-    document.getElementById("fontSizeSlider").value = "32";
-    document.getElementById("font-size-display").innerText = "32";
-  }
+  const savedSize = localStorage.getItem("fontSize") || "32";
+  document.getElementById("fontSizeSlider").value = savedSize;
+  document.getElementById("font-size-display").innerText = savedSize;
 
-  // 表示モード
   const savedMode = localStorage.getItem("displayMode");
-  if (savedMode) {
+  if (savedMode)
     document.getElementById("display-mode-select").value = savedMode;
-  }
 
-  // 以前の "langOrderSwapped" 設定との互換性は、上記がなければデフォルト(both-jp)で吸収
+  const savedSearchMode =
+    localStorage.getItem("searchDisplayMode") || savedMode || "both-jp";
+  document.getElementById("search-display-mode").value = savedSearchMode;
 }
 
 function changeFontSize(size) {
   document.getElementById("main-content").style.fontSize = size + "px";
+  document.getElementById("modal-search-results").style.fontSize =
+    size * 0.9 + "px";
   document.getElementById("font-size-display").innerText = size;
   localStorage.setItem("fontSize", size);
 }
@@ -702,10 +692,7 @@ function changeFontSize(size) {
 function changeDisplayMode() {
   const mode = document.getElementById("display-mode-select").value;
   localStorage.setItem("displayMode", mode);
-
-  // 書巻リストの言語も更新する必要があるため再生成
   populateBooks();
-  // populateBooks内で displayChapter も呼ばれる
 }
 
 function saveAndRefresh() {
@@ -716,18 +703,17 @@ function addHistory(book, chapter) {
   const existingIndex = history.findIndex(
     (item) => item.book === book && item.chapter === chapter
   );
-  if (existingIndex > -1) {
-    history.splice(existingIndex, 1);
-  }
+  if (existingIndex > -1) history.splice(existingIndex, 1);
   history.unshift({ book, chapter });
-  if (history.length > 20) {
-    history.pop();
-  }
+  if (history.length > 20) history.pop();
   localStorage.setItem("bibleHistory", JSON.stringify(history));
 }
 
 function toggleBookmark(verseRef) {
+  // 1. データの更新
   const index = bookmarks.indexOf(verseRef);
+  const isBookmarkedNow = index === -1;
+
   if (index > -1) {
     bookmarks.splice(index, 1);
   } else {
@@ -735,16 +721,28 @@ function toggleBookmark(verseRef) {
     bookmarks.sort();
   }
   localStorage.setItem("bibleBookmarks", JSON.stringify(bookmarks));
-  refreshDisplay();
+
+  // 2. 画面の更新 (DOMを直接書き換えてスクロール位置を維持する)
+  const parts = verseRef.split(":");
+  if (parts.length === 2) {
+    const verseNum = parts[1];
+    const icon = document.querySelector(`#verse-${verseNum} .bookmark-icon`);
+    if (icon) {
+      icon.innerText = isBookmarkedNow ? "★" : "☆";
+    }
+  }
+
+  // 3. サイドバーのリストを更新 (開いた時のために)
+  renderBookmarks();
+
+  // refreshDisplay(); <-- これを削除したのでスクロールしなくなります
 }
 
 function renderHistory() {
-  // 履歴表示時の書巻名も現在の言語設定に合わせる
   const displayMode = document.getElementById("display-mode-select").value;
   const useChineseNames =
     displayMode === "ch-only" || displayMode === "both-ch";
   const nameMap = useChineseNames ? bookFullNamesCh : bookFullNamesJp;
-
   const list = document.getElementById("history-list");
   if (history.length === 0) {
     list.innerHTML = `<li class="empty-message">履歴はありません</li>`;
@@ -765,7 +763,6 @@ function renderBookmarks() {
   const useChineseNames =
     displayMode === "ch-only" || displayMode === "both-ch";
   const nameMap = useChineseNames ? bookFullNamesCh : bookFullNamesJp;
-
   const list = document.getElementById("bookmarks-list");
   if (bookmarks.length === 0) {
     list.innerHTML = `<li class="empty-message">ブックマークはありません</li>`;
@@ -775,11 +772,12 @@ function renderBookmarks() {
     .map((ref) => {
       const match = ref.match(/^([^\d]+)(\d+:\d+)/);
       const bookAbbr = match[1];
-      const chapterAndVerse = match[2];
-      const chapter = parseInt(chapterAndVerse.split(":")[0]);
-      return `<li onclick="displayChapter(true, '${bookAbbr}', ${chapter})">${
+      const parts = match[2].split(":");
+      return `<li onclick="displayChapter(true, '${bookAbbr}', ${parseInt(
+        parts[0]
+      )}, ${parseInt(parts[1])})">${
         nameMap[bookAbbr] || bookFullNamesJp[bookAbbr]
-      } ${chapterAndVerse}</li>`;
+      } ${match[2]}</li>`;
     })
     .join("");
 }
@@ -798,9 +796,8 @@ function showTab(tabName) {
 }
 
 function refreshDisplay() {
-  if (lastViewed.book && lastViewed.chapter) {
+  if (lastViewed.book && lastViewed.chapter)
     displayChapter(false, lastViewed.book, lastViewed.chapter);
-  }
 }
 
 function toggleTheme() {
@@ -816,83 +813,123 @@ function applyTheme() {
   document.getElementById("theme-toggle").checked = savedTheme === "dark";
 }
 
-function searchBible() {
-  if (document.getElementById("left-sidebar").classList.contains("open"))
-    toggleLeftMenu();
-  const query = document.getElementById("search-input").value.trim();
-  if (!query) return;
-  document.title = `「${query}」の検索結果`;
+// --- 検索機能 (モーダル対応版) ---
+
+function openSearchModal() {
+  if (isSidebarOpen()) toggleLeftMenu();
+  document.getElementById("search-modal").classList.add("open");
+  document.getElementById("modal-search-input").focus();
+}
+
+function closeSearchModal() {
+  document.getElementById("search-modal").classList.remove("open");
+}
+
+function searchBible(executeSearch = true) {
+  let query = "";
+
+  if (executeSearch) {
+    query = document.getElementById("modal-search-input").value.trim();
+    if (!query) return;
+    lastSearchQuery = query;
+  } else {
+    query = lastSearchQuery;
+    if (!query) return;
+  }
+
+  const searchDisplayMode = document.getElementById(
+    "search-display-mode"
+  ).value;
+  localStorage.setItem("searchDisplayMode", searchDisplayMode);
+
   const keywords = query.split(/\s+/).filter((k) => k);
-  if (keywords.length === 0) return;
-  document.getElementById("bible-content").innerHTML = "";
-  const resultsDiv = document.getElementById("search-results");
-  resultsDiv.innerHTML = `<div class="loader">検索中...</div>`;
-  setTimeout(() => {
-    let results = [];
-    for (let i = 1; i < bible_data.length; i++) {
-      const row = bible_data[i];
-      const jpText = row[4];
-      const chText = row[2];
-      if (keywords.every((kw) => jpText.includes(kw) || chText.includes(kw))) {
-        results.push(row);
-      }
-    }
+  const resultsDiv = document.getElementById("modal-search-results");
 
-    const displayMode = document.getElementById("display-mode-select").value;
-    let resultsHTML = "";
+  if (executeSearch) {
+    resultsDiv.innerHTML = `<div class="loader">検索中...</div>`;
 
-    if (results.length > 0) {
-      resultsHTML = `<h3>「${query}」の検索結果: ${results.length}件</h3>`;
-      results.forEach((row) => {
-        const verseRef = row[3];
-        const jpDiv = `<div class="jp">${highlightKeywords(
-          row[4],
-          keywords
-        )}</div>`;
-        const chDiv = `<div class="ch">${highlightKeywords(
-          row[2],
-          keywords
-        )}</div>`;
-        const match = verseRef.match(/^([^\d]+)(\d+):/);
-        if (match) {
-          const book = match[1];
-          const chapter = match[2];
-
-          let result_content = "";
-          switch (displayMode) {
-            case "jp-only":
-              result_content = jpDiv;
-              break;
-            case "ch-only":
-              result_content = chDiv;
-              break;
-            case "both-ch":
-              result_content = chDiv + jpDiv;
-              break;
-            default:
-              result_content = jpDiv + chDiv;
-              break;
-          }
-
-          const useChineseNames =
-            displayMode === "ch-only" || displayMode === "both-ch";
-          const bookName = useChineseNames
-            ? bookFullNamesCh[book]
-            : bookFullNamesJp[book];
-
-          const fullVerseRef = verseRef.replace(book, bookName);
-          resultsHTML += `<div class="search-result-item" onclick="displayChapter(true, '${book}', '${chapter}')"><div class="verse-ref">${fullVerseRef}</div><div class="verse-content">${result_content}</div></div>`;
+    setTimeout(() => {
+      let results = [];
+      for (let i = 1; i < bible_data.length; i++) {
+        const row = bible_data[i];
+        const jpText = row[4];
+        const chText = row[2];
+        if (
+          keywords.every((kw) => jpText.includes(kw) || chText.includes(kw))
+        ) {
+          results.push(row);
         }
-      });
-    } else {
-      resultsHTML = `<h3>「${query}」の検索結果</h3><p>見つかりませんでした。</p>`;
-    }
-    resultsDiv.innerHTML = resultsHTML;
+      }
+      lastSearchResults = results;
+      renderSearchResults(keywords);
+    }, 10);
+  } else {
+    renderSearchResults(keywords);
+  }
+}
 
-    // 検索結果表示後も文字サイズ適用
-    const savedSize = localStorage.getItem("fontSize") || "32";
-    changeFontSize(savedSize);
-  }, 10);
+function renderSearchResults(keywords) {
+  const resultsDiv = document.getElementById("modal-search-results");
+  const searchDisplayMode = document.getElementById(
+    "search-display-mode"
+  ).value;
+
+  const useChineseNames =
+    searchDisplayMode === "ch-only" || searchDisplayMode === "both-ch";
+  const nameMap = useChineseNames ? bookFullNamesCh : bookFullNamesJp;
+
+  if (lastSearchResults.length > 0) {
+    let resultsHTML = `<h3 style="margin-bottom:15px; padding-left:5px;">「${lastSearchQuery}」の検索結果: ${lastSearchResults.length}件</h3>`;
+
+    lastSearchResults.forEach((row) => {
+      const verseRef = row[3];
+      const jpDiv = `<div class="jp">${highlightKeywords(
+        row[4],
+        keywords
+      )}</div>`;
+      const chDiv = `<div class="ch">${highlightKeywords(
+        row[2],
+        keywords
+      )}</div>`;
+
+      const match = verseRef.match(/^([^\d]+)(\d+):(\d+)/);
+      if (match) {
+        const book = match[1];
+        const chapter = match[2];
+        const verse = match[3];
+
+        let result_content = "";
+        switch (searchDisplayMode) {
+          case "jp-only":
+            result_content = jpDiv;
+            break;
+          case "ch-only":
+            result_content = chDiv;
+            break;
+          case "both-ch":
+            result_content = chDiv + jpDiv;
+            break;
+          default:
+            result_content = jpDiv + chDiv;
+            break;
+        }
+
+        const bookName = nameMap[book] || bookFullNamesJp[book];
+        const fullVerseRef = verseRef.replace(book, bookName);
+
+        resultsHTML += `<div class="search-result-item" onclick="closeSearchModal(); displayChapter(true, '${book}', '${chapter}', '${verse}')">
+            <div class="verse-ref">${fullVerseRef}</div>
+            <div class="verse-content">${result_content}</div>
+          </div>`;
+      }
+    });
+    resultsDiv.innerHTML = resultsHTML;
+  } else {
+    resultsDiv.innerHTML = `<h3>「${lastSearchQuery}」の検索結果</h3><p class="empty-message">見つかりませんでした。</p>`;
+  }
+
+  const savedSize = localStorage.getItem("fontSize") || "32";
+  resultsDiv.style.fontSize = savedSize * 0.9 + "px";
 }
 
 function highlightKeywords(text, keywords) {
