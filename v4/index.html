@@ -52,6 +52,16 @@
                     <option value="ch-only">中国語のみ</option>
                 </select>
             </div>
+            <div class="control-group">
+                <label>学習機能</label>
+                <div class="switch-container">
+                    <span>疑問登録モード</span>
+                    <label class="switch">
+                        <input type="checkbox" id="question-mode-toggle" onchange="toggleQuestionMode()">
+                        <span class="slider-switch"></span>
+                    </label>
+                </div>
+            </div>
 
             <div class="switch-container">
                 <span>ダークモード</span>
@@ -154,6 +164,58 @@
             </div>
         </div>
     </div>
+
+    <div id="question-modal" class="modal-overlay">
+        <div class="modal-content" style="height: auto; max-height: 90vh;">
+            <div class="modal-header">
+                <h2 id="q-modal-title">疑問点を登録</h2>
+                <span class="modal-close-btn" onclick="closeQuestionModal()">&times;</span>
+            </div>
+            <div class="search-controls">
+                <div style="margin-bottom: 15px; padding: 10px; background: var(--secondary-color); border-radius: 8px; font-size: 0.9em;">
+                    <div id="q-display-ref" style="font-weight: bold; color: var(--primary-color); margin-bottom: 5px;"></div>
+                    <div id="q-display-fulltext" style="color: var(--font-color); line-height: 1.4; max-height: 100px; overflow-y: auto;"></div>
+                </div>
+
+                <div class="control-group">
+                    <label>不明な語句・単語 <span style="color: #e74c3c;">*</span></label>
+                    <input type="text" id="q-target-word" placeholder="例: 贖い、主、など" required>
+                </div>
+
+                <div class="control-group">
+                    <label>質問内容・メモ</label>
+                    <textarea id="q-memo" placeholder="どのような疑問がありますか？"
+                        style="width: 100%; height: 100px; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--secondary-color); color: var(--font-color);"></textarea>
+                </div>
+
+                <input type="hidden" id="q-hidden-ref">
+                <input type="hidden" id="q-hidden-lang">
+
+                <button class="action-btn" onclick="submitQuestion()">サーバーへ保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="answer-modal" class="modal-overlay">
+        <div class="modal-content" style="height: auto; max-height: 80vh;">
+            <div class="modal-header">
+                <h2 id="ans-title">疑問の詳細</h2>
+                <span class="modal-close-btn" onclick="closeModal('answer-modal')">&times;</span>
+            </div>
+            <div style="padding: 10px;">
+                <p style="font-size: 0.8em; color: var(--primary-color);" id="ans-meta"></p>
+                <h3 id="ans-word" style="margin: 10px 0;"></h3>
+                <div id="ans-memo" style="margin-bottom: 20px; padding: 10px; background: var(--secondary-color); border-radius: 8px;"></div>
+
+                <div id="ans-reply-section">
+                    <h4 style="border-left: 4px solid #2ecc71; padding-left: 8px; margin-bottom: 10px;">回答</h4>
+                    <div id="ans-body" style="line-height: 1.6;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" style="position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 9999;"></div>
 
     <script src="./script.js"></script>
 </body>

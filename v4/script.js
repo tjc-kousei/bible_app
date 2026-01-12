@@ -622,6 +622,100 @@ function displayChapter(
 
   const savedSize = localStorage.getItem("fontSize") || "32";
   changeFontSize(savedSize);
+
+  // 疑問点の表示を更新
+  loadVerseQuestions(targetBook, targetChapter);
+}
+
+// ルビ・拼音を削除して純粋なテキストのみを抽出する
+function getCleanText(element) {
+  const clone = element.cloneNode(true);
+  clone.querySelectorAll("rt").forEach((rt) => rt.remove());
+  return clone.innerText.replace(/\s+/g, " ").trim();
+}
+
+// 疑問点登録モーダルを開く
+function openQuestionModal(ref, lang, containerEl) {
+  const cleanText = getCleanText(containerEl); // ここでルビを除去
+
+  document.getElementById("q-display-ref").innerText = `${ref} (${lang})`;
+  document.getElementById("q-display-fulltext").innerText = cleanText;
+  document.getElementById("q-hidden-ref").value = ref;
+  document.getElementById("q-hidden-lang").value = lang;
+
+  document.getElementById("q-target-word").value = "";
+  document.getElementById("q-memo").value = "";
+
+  document.getElementById("question-modal").classList.add("open");
+  setTimeout(() => document.getElementById("q-target-word").focus(), 300);
+}
+
+// 閲覧中の章の疑問点をサーバーから取得してバッジを表示
+async function loadVerseQuestions(book, chapter) {
+  try {
+    const res = await fetch(
+      `https://runaaa0712.weblike.jp/church/bibleapp/get_questions.php?book=${encodeURIComponent(
+        book
+      )}&chapter=${chapter}`
+    );
+    if (!res.ok) return;
+    const questions = await res.json();
+
+    // 既存のバッジを削除
+    document
+      .querySelectorAll(".verse-q-indicator")
+      .forEach((el) => el.remove());
+
+    questions.forEach((q) => {
+      const verseNum = q.ref.split(":")[1];
+      const refContainer = document.querySelector(
+        `#verse-${verseNum} .verse-ref`
+      );
+      if (refContainer) {
+        const badge = document.createElement("span");
+        badge.className = "verse-q-indicator";
+        badge.innerText = `? ${q.word}`;
+        badge.onclick = (e) => {
+          openAnswerModal(q);
+        };
+        refContainer.appendChild(badge);
+      }
+    });
+  } catch (e) {
+    console.error("疑問情報の取得に失敗:", e);
+  }
+}
+
+async function loadVerseQuestions(book, chapter) {
+  try {
+    const res = await fetch(
+      `https://runaaa0712.weblike.jp/church/bibleapp/get_questions.php?book=${book}&chapter=${chapter}`
+    );
+    const questions = await res.json();
+
+    // 既存の表示をクリア
+    document
+      .querySelectorAll(".verse-q-indicator")
+      .forEach((el) => el.remove());
+
+    questions.forEach((q) => {
+      const verseNum = q.ref.split(":")[1];
+      const verseEl = document.querySelector(`#verse-${verseNum} .verse-ref`);
+      if (verseEl) {
+        const badge = document.createElement("span");
+        badge.className = "verse-q-indicator";
+        badge.style =
+          "background: #e74c3c; color: white; font-size: 10px; padding: 2px 5px; border-radius: 4px; margin-left: 8px; cursor: pointer;";
+        badge.innerText = `疑問: ${q.word}`;
+        badge.onclick = (e) => {
+          openAnswerModal(q);
+        };
+        verseEl.appendChild(badge);
+      }
+    });
+  } catch (e) {
+    console.error("疑問点の読み込み失敗", e);
+  }
 }
 
 function navigateBookChapter(direction, isBook) {
@@ -942,4 +1036,131 @@ function highlightKeywords(text, keywords) {
     );
   });
   return highlightedText;
+}
+
+let isQuestionMode = false;
+
+function toggleQuestionMode() {
+  isQuestionMode = document.getElementById("question-mode-toggle").checked;
+  // モードONのときは本文を強調
+  document.getElementById("bible-content").style.cursor = isQuestionMode
+    ? "help"
+    : "default";
+}
+
+// 本文クリック時のイベント
+document.getElementById("bible-content").addEventListener("click", (e) => {
+  if (!isQuestionMode) return;
+
+  const langContainer = e.target.closest(".jp, .ch");
+  if (!langContainer) return;
+
+  const verseContainer = langContainer.closest(".verse-container");
+  const verseNum = verseContainer.id.replace("verse-", "");
+  const lang = langContainer.classList.contains("jp") ? "日本語" : "中国語";
+  const verseRef = `${lastViewed.book}${lastViewed.chapter}:${verseNum}`;
+
+  // --- ルビ・拼音を除去する処理 ---
+  const tempEl = langContainer.cloneNode(true);
+  tempEl.querySelectorAll("rt").forEach((rt) => rt.remove()); // ルビタグの中身を全削除
+  const cleanText = tempEl.innerText.trim(); // 純粋な本文のみ取得
+
+  openQuestionModal(verseRef, lang, cleanText);
+});
+
+function openQuestionModal(ref, lang, fullText) {
+  // 表示のリセットとセット
+  document.getElementById("q-display-ref").innerText = `${ref} (${lang})`;
+  document.getElementById("q-display-fulltext").innerText = fullText;
+  document.getElementById("q-hidden-ref").value = ref;
+  document.getElementById("q-hidden-lang").value = lang;
+
+  // 入力欄を空にする
+  document.getElementById("q-target-word").value = "";
+  document.getElementById("q-memo").value = "";
+
+  document.getElementById("question-modal").classList.add("open");
+  // 単語入力欄にフォーカス
+  setTimeout(() => document.getElementById("q-target-word").focus(), 300);
+}
+
+function closeQuestionModal() {
+  document.getElementById("question-modal").classList.remove("open");
+}
+
+async function submitQuestion() {
+  const word = document.getElementById("q-target-word").value.trim();
+  const memo = document.getElementById("q-memo").value.trim();
+
+  if (!word) {
+    alert("不明な語句を入力してください。");
+    return;
+  }
+
+  const data = {
+    book: lastViewed.book,
+    chapter: lastViewed.chapter,
+    ref: document.getElementById("q-hidden-ref").value,
+    lang: document.getElementById("q-hidden-lang").value,
+    word: word, // 不明単語
+    memo: memo,
+    fulltext: document.getElementById("q-display-fulltext").innerText, // 文脈確認用
+  };
+
+  try {
+    const response = await fetch(
+      "https://runaaa0712.weblike.jp/church/bibleapp/save_question.php",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (response.ok) {
+      alert("登録が完了しました。");
+      closeQuestionModal();
+      // 必要に応じて現在の章の疑問点表示を更新
+      if (typeof fetchQuestionsForChapter === "function") {
+        fetchQuestionsForChapter(lastViewed.book, lastViewed.chapter);
+      }
+    }
+  } catch (error) {
+    alert("エラーが発生しました。");
+  }
+}
+
+// トースト表示関数
+function showToast(message) {
+  const container = document.getElementById("toast-container");
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerText = message;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// モーダルを閉じる汎用関数
+function closeModal(id) {
+  document.getElementById(id).classList.remove("open");
+}
+
+// 回答モーダルを開く
+function openAnswerModal(q) {
+  document.getElementById("ans-meta").innerText = `${q.ref} (${q.lang})`;
+  document.getElementById("ans-word").innerText = q.word;
+  document.getElementById("ans-memo").innerText = q.memo || "メモなし";
+
+  const replySection = document.getElementById("ans-reply-section");
+  const ansBody = document.getElementById("ans-body");
+
+  if (q.answer) {
+    replySection.style.display = "block";
+    ansBody.innerText = q.answer;
+  } else {
+    replySection.style.display = "block";
+    ansBody.innerHTML = "<em style='color: #888;'>まだ回答がありません。</em>";
+  }
+
+  document.getElementById("answer-modal").classList.add("open");
 }
