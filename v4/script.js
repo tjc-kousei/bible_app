@@ -14,7 +14,7 @@ const DB_VERSION = 1;
 const DB_STORE_NAME = "bible_store";
 
 // --- お知らせのバージョンID (更新があるとIDを変える) ---
-const LATEST_ANNOUNCEMENT_ID = "announce-2025-12-15-update";
+const LATEST_ANNOUNCEMENT_ID = "announce-2026-01-12-learning-feature";
 
 // --- データ定義 ---
 const bookChapters = {

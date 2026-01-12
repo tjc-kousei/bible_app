@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>聖書Q&A - みんなの疑問と回答</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="shortcut icon" href="./study.png" type="image/x-icon">
+    <style>
+        /* --- QA画面固有のスタイル --- */
+        body { padding-bottom: 40px; }
+
+        .qa-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 70px 15px 20px;
+        }
+
+        /* フィルターエリア */
+        .qa-filter-bar {
+            background: var(--header-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            gap: 12px;
+            border: 1px solid var(--border-color);
+            position: sticky;
+            top: 60px;
+            z-index: 100;
+        }
+
+        .qa-filter-bar select {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--secondary-color);
+            color: var(--font-color);
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+
+        /* QAカード */
+        .qa-card {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+
+        .qa-ref-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8em;
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .qa-word-box {
+            margin-bottom: 15px;
+        }
+
+        .qa-word {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--font-color);
+            border-bottom: 3px solid var(--primary-color);
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .qa-context {
+            font-size: 0.9em;
+            background: rgba(0,0,0,0.03);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid var(--border-color);
+            color: var(--font-color);
+            opacity: 0.8;
+            font-style: italic;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        body[data-theme='dark'] .qa-context {
+            background: rgba(255,255,255,0.03);
+        }
+
+        .qa-question-text {
+            line-height: 1.7;
+            margin-bottom: 20px;
+            padding-left: 5px;
+        }
+
+        /* 回答セクション */
+        .qa-answer-box {
+            background: var(--background-color);
+            padding: 18px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .qa-answer-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #2ecc71; /* 回答用アクセントカラー */
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .qa-answer-body {
+            line-height: 1.8;
+            color: var(--font-color);
+        }
+
+        .status-waiting {
+            color: #888;
+            font-style: italic;
+            font-size: 0.9em;
+        }
+
+        body[data-theme='dark'] {
+            --background-color: #1c2833; /* 変数を再定義 */
+            --secondary-color: #2c3e50;
+            --font-color: #ecf0f1;
+            --border-color: #34495e;
+            --primary-color: #3498db;
+            --header-bg: rgba(28, 40, 51, 0.85);
+
+            background-color: var(--background-color) !important;
+            color: var(--font-color) !important;
+        }
+
+        .qa-card {
+            background-color: #2c3e50 !important; /* カードの紺色 */
+            border: 1px solid #34495e !important;
+        }
+
+        .qa-answer-box {
+            background-color: #1c2833 !important;
+            border-color: #34495e !important;
+        }
+    </style>
+</head>
+<body data-theme="dark"> <header>
+        <span class="action-icon" onclick="location.href='index.html'">←</span>
+        <div style="flex-grow:1; text-align:center; font-weight:bold; font-size:1.1em;">聖書 Q&A 一覧</div>
+        <span class="action-icon" style="visibility:hidden;">&#9776;</span>
+    </header>
+
+    <main class="qa-container">
+        <div class="qa-filter-bar">
+            <select id="filter-book" onchange="renderQA()">
+                <option value="">すべての書簡</option>
+            </select>
+            <select id="filter-status" onchange="renderQA()">
+                <option value="all">すべて表示</option>
+                <option value="answered">回答済みのみ</option>
+            </select>
+        </div>
+
+        <div id="qa-list">
+            <div class="loader">読み込んでいます...</div>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = "https://runaaa0712.weblike.jp/church/bibleapp/";
+        let qaData = [];
+
+        async function init() {
+            // メインアプリのテーマ設定を反映
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.body.setAttribute('data-theme', savedTheme);
+
+            try {
+                // 公開用フラグを付けて全取得
+                const res = await fetch(`${API_BASE}get_all_questions.php?public=true`);
+                qaData = await res.json();
+
+                populateBooks();
+                renderQA();
+            } catch (e) {
+                document.getElementById('qa-list').innerHTML =
+                    '<p style="text-align:center; padding:50px;">データの取得に失敗しました。</p>';
+            }
+        }
+
+        function populateBooks() {
+            const select = document.getElementById('filter-book');
+            const books = [...new Set(qaData.map(item => item.book))];
+            books.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b;
+                opt.textContent = b;
+                select.appendChild(opt);
+            });
+        }
+
+        function renderQA() {
+            const bookFilter = document.getElementById('filter-book').value;
+            const statusFilter = document.getElementById('filter-status').value;
+            const list = document.getElementById('qa-list');
+
+            const filtered = qaData.filter(item => {
+                const matchBook = !bookFilter || item.book === bookFilter;
+                const matchStatus = statusFilter === 'all' || (statusFilter === 'answered' && item.answer);
+                return matchBook && matchStatus;
+            }).reverse();
+
+            if (filtered.length === 0) {
+                list.innerHTML = '<p style="text-align:center; padding:60px; color:#888;">該当する疑問はありません。</p>';
+                return;
+            }
+
+            list.innerHTML = filtered.map((item, index) => `
+                <div class="qa-card" style="animation-delay: ${index * 0.1}s">
+                    <div class="qa-header">
+                        <span>${item.ref} (${item.lang})</span>
+                        <span style="color:#888; font-weight:normal;">${item.date.split(' ')[0]}</span>
+                    </div>
+                    <div class="qa-word-box">
+                        <div class="qa-word">${item.word}</div>
+                    </div>
+                    <div class="qa-context">${item.fulltext || ''}</div>
+                    <div class="qa-question-text">${item.memo.replace(/\n/g, '<br>')}</div>
+
+                    <div class="qa-answer-box">
+                        <div class="qa-answer-label">
+                            <span style="font-size:1.2em;">💡</span> 回答
+                        </div>
+                        <div class="qa-answer-body">
+                            ${item.answer ? item.answer.replace(/\n/g, '<br>') : '<span class="status-waiting">現在、回答を確認中です。しばらくお待ちください。</span>'}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        init();
+    </script>
+</body>
+</html>

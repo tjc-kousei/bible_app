@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聖書アプリ 管理パネル</title>
+    <link rel="shortcut icon" href="./study.png" type="image/x-icon">
+    <link rel="stylesheet" href="style.css"> </head>
+<body class="admin-body">
+
+<div class="admin-container">
+    <div id="login-screen" class="q-card login-container">
+        <h2 style="margin-top:0;">管理者ログイン</h2>
+        <input type="password" id="pass-input" placeholder="パスワードを入力" autofocus>
+        <button class="admin-btn" style="width:100%;" onclick="login()">ログイン</button>
+    </div>
+
+    <div id="admin-main" style="display:none;">
+        <div class="admin-header">
+            <h1 style="margin:0; font-size: 1.5em;">Bible App Admin</h1>
+            <button onclick="logout()" style="background:none; border:none; color:#95a5a6; cursor:pointer; font-size:0.9em;">ログアウト</button>
+        </div>
+
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label>書簡（疑問ありのみ）</label>
+                <select id="filter-book" onchange="updateChapterFilter()"></select>
+            </div>
+            <div class="filter-group">
+                <label>章</label>
+                <select id="filter-chapter" onchange="renderQuestions()"></select>
+            </div>
+            <div class="filter-group">
+                <label>操作</label>
+                <button class="admin-btn" style="background:#5d6d7e;" onclick="resetFilters()">クリア</button>
+            </div>
+        </div>
+
+        <div id="questions-list">
+            <p style="text-align:center; opacity:0.5;">読み込んでいます...</p>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    const API_BASE = "https://runaaa0712.weblike.jp/church/bibleapp/";
+    let currentPass = localStorage.getItem('admin_pass') || "";
+    let allQuestions = []; // 全データを保持
+
+    function login() {
+        currentPass = document.getElementById('pass-input').value;
+        localStorage.setItem('admin_pass', currentPass);
+        checkAuth();
+    }
+
+    function logout() {
+        localStorage.removeItem('admin_pass');
+        location.reload();
+    }
+
+    async function checkAuth() {
+        if (!currentPass) return;
+        const res = await fetch(`${API_BASE}get_all_questions.php?pass=${currentPass}`);
+        if (res.ok) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('admin-main').style.display = 'block';
+            allQuestions = await res.json();
+            initBookFilter(); // 疑問がある書簡だけを抽出
+            renderQuestions();
+        } else {
+            alert("認証に失敗しました。");
+            logout();
+        }
+    }
+
+    // 1. 疑問が存在する書簡だけを抽出してプルダウンを作成
+    function initBookFilter() {
+        const bookSelect = document.getElementById('filter-book');
+        const booksWithQuestions = [...new Set(allQuestions.map(q => q.book))];
+
+        bookSelect.innerHTML = '<option value="">すべて</option>';
+        booksWithQuestions.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b; opt.textContent = b;
+            bookSelect.appendChild(opt);
+        });
+        updateChapterFilter();
+    }
+
+    // 2. 選択された書簡の中で、疑問が存在する章だけを抽出
+    function updateChapterFilter() {
+        const bookVal = document.getElementById('filter-book').value;
+        const chapterSelect = document.getElementById('filter-chapter');
+
+        // 選択された書簡に紐づく章を抽出
+        const filteredData = bookVal ? allQuestions.filter(q => q.book === bookVal) : allQuestions;
+        const chaptersWithQuestions = [...new Set(filteredData.map(q => q.chapter))].sort((a, b) => a - b);
+
+        chapterSelect.innerHTML = '<option value="">すべて</option>';
+        chaptersWithQuestions.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c; opt.textContent = c + "章";
+            chapterSelect.appendChild(opt);
+        });
+
+        renderQuestions(); // 選択変更時に自動描画
+    }
+
+    // クリア機能
+    function resetFilters() {
+        document.getElementById('filter-book').value = "";
+        updateChapterFilter();
+    }
+
+    function renderQuestions() {
+        const bookVal = document.getElementById('filter-book').value;
+        const chapterVal = document.getElementById('filter-chapter').value;
+        const container = document.getElementById('questions-list');
+
+        const filtered = allQuestions.filter(q => {
+            return (!bookVal || q.book === bookVal) &&
+                   (!chapterVal || String(q.chapter) === String(chapterVal));
+        }).reverse(); // 新着順
+
+        if (filtered.length === 0) {
+            container.innerHTML = "<p style='text-align:center; padding:50px; opacity:0.5;'>データはありません</p>";
+            return;
+        }
+
+        container.innerHTML = filtered.map(q => `
+            <div class="q-card">
+                <div class="q-meta">
+                    <span><strong>${q.ref}</strong> [${q.lang}]</span>
+                    <span>${q.date}</span>
+                </div>
+                <div class="q-word">不明語句: ${q.word}</div>
+                <div class="q-fulltext">原文: ${q.fulltext || ''}</div>
+                <div class="q-memo"><strong>内容:</strong><br>${q.memo.replace(/\n/g, '<br>')}</div>
+                <textarea id="ans-${q.id}" placeholder="回答を入力...">${q.answer || ''}</textarea>
+                <button class="admin-btn btn-save" onclick="saveAnswer('${q.book}', '${q.id}')">回答を保存</button>
+            </div>
+        `).join('');
+    }
+
+    async function saveAnswer(book, id) {
+    const answer = document.getElementById(`ans-${id}`).value;
+    const btn = event.target;
+    btn.innerText = "保存中...";
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_BASE}save_answer.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pass: currentPass, book, id, answer })
+        });
+        if (res.ok) {
+            const item = allQuestions.find(q => q.id === id);
+            if (item) item.answer = answer;
+
+            // --- 修正点: showMessage を使う ---
+            showMessage("✔ 回答を保存しました");
+        }
+    } catch (e) {
+        showMessage("❌ 保存エラー");
+    } finally {
+        btn.innerText = "回答を保存";
+        btn.disabled = false;
+    }
+}
+
+    if (currentPass) checkAuth();
+
+    function showMessage(msg) {
+        let toast = document.querySelector('.toast-msg');
+
+        // トースト要素がなければ作成
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.className = 'toast-msg';
+            document.body.appendChild(toast);
+        }
+
+        // メッセージをセットして表示
+        toast.innerText = msg;
+        toast.classList.add('show');
+
+        // 以前のタイマーがあればクリア（連打対策）
+        if (toast.timer) clearTimeout(toast.timer);
+
+        // 2.5秒後に非表示にする
+        toast.timer = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2500);
+}
+</script>
+</body>
+</html>
