@@ -10,10 +10,10 @@ function getCSV(){
     let req = new XMLHttpRequest(); // HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
     req.open("get", "../Data(hira).csv", true); // アクセスするファイルを指定
     req.send(null); // HTTPリクエストの発行
-	
+
     req.onload = function(){
 		convertCSVtoArray(req.responseText); // 渡されるのは読み込んだCSVデータ
-		
+
 		let tdc_req = new XMLHttpRequest();
 		tdc_req.open("get", "./data.csv", true);
 		tdc_req.send(null);
@@ -34,9 +34,11 @@ function getCSV(){
 bible_data = []; // 最終的な二次元配列を入れるための配列
 // 読み込んだCSVデータを二次元配列に変換する関数convertCSVtoArray()の定義
 function convertCSVtoArray(str){ // 読み込んだCSVデータが文字列として渡される
-    
+
+    // Convert new compact JP ruby format (|漢字(ルビ)) back to HTML tags.
+    str = str.replace(/\|([^()]+)\(([^()]+)\)/g, "<ruby>$1<rt>$2</rt></ruby>");
     let tmp = str.split("\n"); // 改行を区切り文字として行を要素とした配列を生成
- 
+
     // 各行ごとにカンマで区切った文字列を要素とした二次元配列を生成
     for(let i=1;i<tmp.length;++i){
         bible_data[i] = tmp[i].split(',');
@@ -132,7 +134,7 @@ function load() {
 		}
 		letter.appendChild(button);
 	})
-	
+
 }
 
 document.querySelector(".Toggle").addEventListener('click',(e)=> {
@@ -243,7 +245,7 @@ function searchbox() {
 	}
 }
 
-function search() {	
+function search() {
 	if(document.querySelector(".Toggle").classList.contains("active")) document.querySelector(".Toggle").click();
 	let keyword = document.getElementById("keyword").value;
 	let contents = "";
@@ -254,7 +256,7 @@ function search() {
 		const pattern = keyword;
 		document.title = "【" + pattern + "】の検索結果";
 		let setu = "";
-		if(keyword.replace(/[\s\t\n]/g, "")!='') { 
+		if(keyword.replace(/[\s\t\n]/g, "")!='') {
 			document.getElementById("Abbre").innerHTML = "";
 			document.getElementById("syou").innerHTML = "";
 			for( let n=1,j=1;n<=31103;n++){
@@ -304,7 +306,7 @@ function search() {
 				j++;
 			}
 		}
-		
+
 		document.getElementById("Abbre").innerHTML = `【<mark>${pattern}</mark>】 `;
 		document.getElementById("syou").innerHTML = `<mark style="background:aqua">${hit}</mark>件`;
 
@@ -324,7 +326,7 @@ function request() {
 		message : msg
 	};
 
-	let postparam = 
+	let postparam =
 		{
 			"method"     : "POST",
 			"mode"       : "no-cors",

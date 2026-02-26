@@ -1,14 +1,7 @@
 bible_offline
-nodejs_output
 Data(hira) - archive.csv
-gokusearch.html
-gokusearch.css
-gokusearch.js
-index.py
-replace.py
-replace.py
-search.html
-search.css
-search.js
 icons
 .DS_Store
+logs/
+update_manual.md
+/node_modules

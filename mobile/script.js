@@ -6,10 +6,13 @@ const getCSV = (url) => {
     let req = new XMLHttpRequest();
     req.open("get", url, false);
     req.send(null);
-	
+
 	if( req.status == 200 ) {
 		let arr = [];
-		let tmp = req.responseText.split("\n");
+        // Convert new compact JP ruby format (|漢字(ルビ)) back to HTML tags.
+		let tmp = req.responseText
+            .replace(/\|([^()]+)\(([^()]+)\)/g, "<ruby>$1<rt>$2</rt></ruby>")
+            .split("\n");
 		for(let i=1;i<tmp.length;++i){
 			arr[i] = tmp[i].split(',');
 		}
@@ -23,7 +26,7 @@ const setStrSize = () => {
 	if(letter_size>2.5) letter_size = 2.5;
 	if(letter_size<1.0) letter_size = 1.0;
 
-	document.getElementById("result").style.fontSize = letter_size + "rem";	
+	document.getElementById("result").style.fontSize = letter_size + "rem";
 }
 
 // 内容表示
@@ -58,7 +61,7 @@ function testament(add,del) {
     }
     if(document.getElementById(del).classList.contains("looking"))
         document.getElementById(del).classList.toggle("looking");
-    
+
     document.getElementById("abbre").innerHTML = "";
     createbutton( DefaultLang + "_" + DefaultTestament );
 }
@@ -101,7 +104,7 @@ function createbutton(name) {
                 button_nest.addEventListener("click", (e_chil) => {
                     display(e_chil.target.value,e_chil.target.dataset.abbre+e_chil.target.innerHTML+"章");
                     isLook = true;
-                    document.getElementById("modal_syou").style.left = "-150%";        
+                    document.getElementById("modal_syou").style.left = "-150%";
                 })
             }
             document.getElementById("close").click();
@@ -146,7 +149,7 @@ function Goku(text) {
                         break;
                     }
                 }
-    
+
                 if(check_flag) {
                     contents += `<div class="wrapper">`;
                     contents += `<div  class="specific" style="color:white; border:dotted 1px white; display:inline-block">${bible_data[n][3]}</div>`;
@@ -159,7 +162,7 @@ function Goku(text) {
             }
             document.getElementById("log").innerHTML = `${hit}件`;
         }
-        document.getElementById("result").innerHTML = contents;	
+        document.getElementById("result").innerHTML = contents;
     }
     setStrSize();
 }
@@ -173,7 +176,7 @@ function Hanyi(text) {
 			setu = pattern.split(':');
 			range = setu[0]+':'+value[1]; //range -> 範囲
 			start = end = '';
-			if(keyword.replace(/[\s\t\n]/g, "")!='') { 
+			if(keyword.replace(/[\s\t\n]/g, "")!='') {
 				for( let n=1,j=1;n<=31103;n++){
 					if(bible_data[n][1] === pattern || bible_data[n][2] === pattern || bible_data[n][3] === pattern || bible_data[n][4] === pattern) start = n;
 					if(bible_data[n][1] === range || bible_data[n][2] === range || bible_data[n][3] === range || bible_data[n][4] === range) end = n;
@@ -189,7 +192,7 @@ function Hanyi(text) {
 			contents += `<div class="jp" id="range_ja" style="border-bottom: 5px solid red; color: skyblue;">${japanese}</div>`;
 			contents += `<div class="ch" style="color: yellowgreen;">${chinese}</div></div>`;
 		}else {
-			if(keyword.replace(/[\s\t\n]/g, "")!='') { 
+			if(keyword.replace(/[\s\t\n]/g, "")!='') {
 				for( let n=1,j=1;n<=31103;n++){
 					if(bible_data[n][1] === pattern || bible_data[n][2] === pattern || bible_data[n][3] === pattern || bible_data[n][4] === pattern) {
 						contents += `<div class="wrapper">`;

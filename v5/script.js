@@ -249,6 +249,8 @@ async function fetchCSV(url) {
 function csvTo2D(text) {
   return text
     .replace(/\uFEFF/g, "")
+    // Convert new compact JP ruby format (|漢字(ルビ)) back to HTML tags.
+    .replace(/\|([^()]+)\(([^()]+)\)/g, "<ruby>$1<rt>$2</rt></ruby>")
     .split(/\r?\n/)
     .filter((line) => line.trim() !== "")
     .map((line) => line.split(","));

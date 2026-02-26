@@ -219,7 +219,9 @@ const initData = async (url) => {
     const response = await fetch(url);
     if (!response.ok) throw new Error("Network response was not ok");
     const text = await response.text();
-    const lines = text.split("\n");
+    // Convert new compact JP ruby format (|漢字(ルビ)) back to HTML tags.
+    const textWithHTMLRuby = text.replace(/\|([^()]+)\(([^()]+)\)/g, "<ruby>$1<rt>$2</rt></ruby>");
+    const lines = textWithHTMLRuby.split("\n");
 
     // データのリセット
     bible_data = [];
