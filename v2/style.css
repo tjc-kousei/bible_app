@@ -351,10 +351,16 @@ rt.pinyin   { color:#f199a2; font-style: italic; }
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s;
+    touch-action: manipulation; /* iOS ダブルタップズーム遅延防止 */
+    -webkit-tap-highlight-color: transparent; /* タップ時ハイライト除去 */
 }
 
 .modal-content button:hover {
     background-color: #0056b3;
+}
+
+.modal-content button:active {
+    background-color: #004099;
 }
 
 .dont-show-again-container {

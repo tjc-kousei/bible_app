@@ -643,9 +643,29 @@ function setupAnnouncement() {
     }
   };
 
+  // モーダル内のタッチイベントが ban() の touchmove preventDefault に
+  // ブロックされないよう伝播を止める（iPad PWA対策）
+  const modalContent = modal.querySelector(".modal-content");
+  modalContent.addEventListener("touchmove", (e) => {
+    e.stopPropagation();
+  }, { passive: false });
+
+  // click + touchend の両方でボタン押下を検知（iOS PWA対策）
   closeBtn.addEventListener("click", closeModal);
+  closeBtn.addEventListener("touchend", (e) => {
+    e.preventDefault(); // ゴーストクリック防止
+    closeModal();
+  });
+
+  // オーバーレイ部分タップで閉じる
   modal.addEventListener("click", (e) => {
     if (e.target === modal) {
+      closeModal();
+    }
+  });
+  modal.addEventListener("touchend", (e) => {
+    if (e.target === modal) {
+      e.preventDefault();
       closeModal();
     }
   });
