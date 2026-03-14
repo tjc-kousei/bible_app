@@ -1062,20 +1062,32 @@ document.getElementById("bible-content").addEventListener("click", (e) => {
   const lang = langContainer.classList.contains("jp") ? "日本語" : "中国語";
   const verseRef = `${lastViewed.book}${lastViewed.chapter}:${verseNum}`;
 
+  // --- 該当節全体の取得（他言語のコンテキスト用） ---
+  const otherLangContainer = langContainer.classList.contains("jp") ? verseContainer.querySelector(".ch") : verseContainer.querySelector(".jp");
+  let otherCleanText = "";
+  if (otherLangContainer) {
+    const tempOtherEl = otherLangContainer.cloneNode(true);
+    tempOtherEl.querySelectorAll("rt").forEach(rt => rt.remove());
+    otherCleanText = tempOtherEl.innerText.trim();
+  }
+
   // --- ルビ・拼音を除去する処理 ---
   const tempEl = langContainer.cloneNode(true);
   tempEl.querySelectorAll("rt").forEach((rt) => rt.remove()); // ルビタグの中身を全削除
   const cleanText = tempEl.innerText.trim(); // 純粋な本文のみ取得
 
-  openQuestionModal(verseRef, lang, cleanText);
+  openQuestionModal(verseRef, lang, cleanText, otherCleanText);
 });
 
-function openQuestionModal(ref, lang, fullText) {
+function openQuestionModal(ref, lang, fullText, otherFullText = "") {
   // 表示のリセットとセット
   document.getElementById("q-display-ref").innerText = `${ref} (${lang})`;
   document.getElementById("q-display-fulltext").innerText = fullText;
   document.getElementById("q-hidden-ref").value = ref;
   document.getElementById("q-hidden-lang").value = lang;
+  
+  // 他言語のテキストを隠しパラメータとして保持するか、モーダル自体にDatasetとして持たせる
+  document.getElementById("question-modal").dataset.otherFullText = otherFullText;
 
   // 入力欄を空にする
   document.getElementById("q-target-word").value = "";
@@ -1107,6 +1119,7 @@ async function submitQuestion() {
     word: word, // 不明単語
     memo: memo,
     fulltext: document.getElementById("q-display-fulltext").innerText, // 文脈確認用
+    other_fulltext: document.getElementById("question-modal").dataset.otherFullText || "", // 他言語の原文コンテキスト
   };
 
   const btn = event.target;
