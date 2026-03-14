@@ -1109,6 +1109,11 @@ async function submitQuestion() {
     fulltext: document.getElementById("q-display-fulltext").innerText, // 文脈確認用
   };
 
+  const btn = event.target;
+  const originalText = btn.innerText;
+  btn.innerText = "翻訳して保存中...";
+  btn.disabled = true;
+
   try {
     const response = await fetch(
       "https://runaaa0712.weblike.jp/church/bibleapp/save_question.php",
@@ -1120,15 +1125,20 @@ async function submitQuestion() {
     );
 
     if (response.ok) {
-      alert("登録が完了しました。");
+      alert("登録と翻訳が完了しました。");
       closeQuestionModal();
       // 必要に応じて現在の章の疑問点表示を更新
-      if (typeof fetchQuestionsForChapter === "function") {
-        fetchQuestionsForChapter(lastViewed.book, lastViewed.chapter);
+      if (typeof loadVerseQuestions === "function") {
+        loadVerseQuestions(lastViewed.book, lastViewed.chapter);
       }
+    } else {
+        alert("サーバーエラーが発生しました。");
     }
   } catch (error) {
-    alert("エラーが発生しました。");
+    alert("通信エラーが発生しました。");
+  } finally {
+      btn.innerText = originalText;
+      btn.disabled = false;
   }
 }
 
