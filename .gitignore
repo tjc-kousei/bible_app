@@ -2,7 +2,6 @@ bible_offline
 Data(hira) - archive.csv
 icons
 .DS_Store
-logs/
 update_manual.md
 /node_modules
 /v4/bibleapp
