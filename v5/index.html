@@ -1,92 +1,145 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>聖書閲覧アプリ (PC Pro版)</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="shortcut icon" href="../v2.png" type="image/x-icon">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>聖書閲覧アプリ V5</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="shortcut icon" href="../v2.png" type="image/x-icon">
 </head>
 <body>
-    <div class="container">
-        <div class="left-panel">
-            <div class="panel-section">
-                <h2>クイックジャンプ<span class="shortcut-tip">Ctrl+G</span></h2>
-                <div class="control-group">
-                    <input type="text" id="goto-input" placeholder="例: ヨハ 3:16">
-                    <button id="goto-button" class="action-btn">移動</button>
-                </div>
-            </div>
-            <div class="panel-section">
-                <h2>聖書箇所を選択</h2>
-                <div class="control-group">
-                    <label for="book-select">書巻:</label>
-                    <select id="book-select"></select>
-                </div>
-                <div class="control-group">
-                    <label for="chapter-select">章:</label>
-                    <select id="chapter-select"></select>
-                </div>
-                <div class="navigation-buttons">
-                    <button id="prev-book" title="前の書巻 (Ctrl + ←)">&lt;&lt;</button>
-                    <button id="prev-chapter" title="前の章 (←)">&lt;</button>
-                    <button id="next-chapter" title="次の章 (→)">&gt;</button>
-                    <button id="next-book" title="次の書巻 (Ctrl + →)">&gt;&gt;</button>
-                </div>
-            </div>
-            <div class="panel-section">
-                <h2>語句検索<span class="shortcut-tip">Ctrl+F</span></h2>
-                <div class="control-group">
-                    <input type="search" id="search-input" placeholder="例: 信仰 愛">
-                </div>
-            </div>
-            <div class="panel-section user-data-section">
-                <div class="tabs">
-                    <button class="tab-button active" onclick="showTab('history')">閲覧履歴</button>
-                    <button class="tab-button" onclick="showTab('bookmarks')">ブックマーク</button>
-                </div>
-                <div id="history-content" class="tab-content active"><ul id="history-list"></ul></div>
-                <div id="bookmarks-content" class="tab-content"><ul id="bookmarks-list"></ul></div>
-            </div>
-            <details class="panel-section settings" open>
-                <summary><h2>設定</h2></summary>
-                <div class="settings-content">
-                    <div class="switch-container">
-                        <span>ダークモード</span><span class="shortcut-tip">Ctrl+D</span>
-                        <label class="switch"><input type="checkbox" id="theme-toggle"></label>
-                    </div>
-                    <div class="switch-container">
-                        <span>ルビ (日)</span><span class="shortcut-tip">Ctrl+J</span>
-                        <label class="switch"><input type="checkbox" id="ruby-jp-toggle" checked></label>
-                    </div>
-                    <div class="switch-container">
-                        <span>ルビ (中)</span><span class="shortcut-tip">Ctrl+C</span>
-                        <label class="switch"><input type="checkbox" id="ruby-ch-toggle" checked></label>
-                    </div>
-                    <label for="fontSizeSlider" style="margin-top:15px;">文字サイズ:</label>
-                    <input type="range" id="fontSizeSlider" min="12" max="32" value="16">
-                </div>
-            </details>
-        </div>
+  <div class="app-shell">
+    <aside class="side-panel">
+      <section class="panel-block">
+        <p class="eyebrow">Keyboard First</p>
+        <p class="panel-copy">
+          マウスをほぼ使わずに、移動・検索・表示切替まで完結する PC 特化版です。
+        </p>
+      </section>
 
-        <div class="main-content-wrapper">
-            <button id="panel-toggle-btn" title="サイドパネルを開閉">☰</button>
-            <header>
-                 <div class="header-title">
-                     <p id="main-header-title"></p>
-                 </div>
-            </header>
-            <main id="main-content">
-                <div id="loader" class="loader">
-                    <div class="spinner"></div>
-                    <p>データを読み込んでいます...</p>
-                </div>
-                <div id="bible-display-area" class="bible-display-area"></div>
-                <div id="search-results"></div>
-            </main>
+      <section class="panel-block">
+        <h2>ショートカット</h2>
+        <ul class="shortcut-list">
+          <li><kbd>/</kbd> 検索</li>
+          <li><kbd>g</kbd> 箇所移動</li>
+          <li><kbd>n</kbd> 次章</li>
+          <li><kbd>p</kbd> 前章</li>
+          <li><kbd>j</kbd> 次の節</li>
+          <li><kbd>k</kbd> 前の節</li>
+          <li><kbd>1</kbd> 日中併記</li>
+          <li><kbd>2</kbd> 日本語のみ</li>
+          <li><kbd>3</kbd> 中国語のみ</li>
+          <li><kbd>4</kbd> コンパクト</li>
+          <li><kbd>b</kbd> 章を保存</li>
+          <li><kbd>?</kbd> ヘルプ</li>
+        </ul>
+      </section>
+
+      <section class="panel-block">
+        <div class="panel-head">
+          <h2>履歴</h2>
+          <span id="historyCount" class="counter">0</span>
         </div>
-    </div>
-    <script src="./script.js"></script>
+        <div id="historyList" class="stack-list" aria-live="polite"></div>
+      </section>
+
+      <section class="panel-block">
+        <div class="panel-head">
+          <h2>ブックマーク</h2>
+          <span id="bookmarkCount" class="counter">0</span>
+        </div>
+        <div id="bookmarkList" class="stack-list" aria-live="polite"></div>
+      </section>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div class="title-wrap">
+          <p class="eyebrow">PC Reading Console</p>
+          <h2 id="currentLabel">読込中...</h2>
+        </div>
+        <div class="status-wrap">
+          <span id="modeChip" class="chip">日中併記</span>
+          <span id="verseChip" class="chip muted">0 節</span>
+        </div>
+      </header>
+
+      <section class="command-area">
+        <label for="commandInput" class="sr-only">コマンド入力</label>
+        <input
+          id="commandInput"
+          class="command-input"
+          type="text"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="例: ヨハ 3 / 愛 信仰 / 創 1:1-5 / :compact"
+        >
+        <div class="hint-row">
+          <span>`g` で箇所移動</span>
+          <span>`/` で検索</span>
+          <span>`:` で表示モード変更</span>
+          <span>`Enter` で実行</span>
+        </div>
+        <p id="statusLine" class="status-line" aria-live="polite">データを読み込んでいます...</p>
+      </section>
+
+      <section id="summaryBar" class="summary-bar">
+        <div>
+          <span class="summary-label">現在地</span>
+          <strong id="summaryRef">-</strong>
+        </div>
+        <div>
+          <span class="summary-label">検索</span>
+          <strong id="summarySearch">なし</strong>
+        </div>
+        <div>
+          <span class="summary-label">フォーカス</span>
+          <strong id="summaryFocus">-</strong>
+        </div>
+      </section>
+
+      <section id="helpPanel" class="help-panel hidden">
+        <div class="help-grid">
+          <div>
+            <h3>移動</h3>
+            <p>`創 1` `ヨハ 3:16` `ヨハ 3:16-18` のように入力。</p>
+            <p>`n` `p` で章移動。`j` `k` で節フォーカス。</p>
+          </div>
+          <div>
+            <h3>検索</h3>
+            <p>`/愛 信仰` のように空白区切りで AND 検索。</p>
+            <p>検索結果の行で `Enter` を押すと該当箇所へ移動。</p>
+          </div>
+          <div>
+            <h3>表示</h3>
+            <p>`:both` `:jp` `:ch` `:compact` で表示切替。</p>
+            <p>`+` `-` で文字サイズ変更。</p>
+          </div>
+          <div>
+            <h3>保存</h3>
+            <p>`b` で現在章をブックマーク。</p>
+            <p>左の履歴・保存項目は `Enter` で再表示できます。</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="content" class="content" tabindex="-1" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <template id="verseTemplate">
+    <article class="verse-card" tabindex="-1">
+      <div class="verse-head">
+        <span class="verse-ref"></span>
+        <button class="verse-jump" type="button">開く</button>
+      </div>
+      <p class="verse-jp"></p>
+      <p class="verse-ch"></p>
+      <p class="verse-compact"></p>
+    </article>
+  </template>
+
+  <script src="script.js"></script>
 </body>
 </html>
