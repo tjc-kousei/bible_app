@@ -1,5 +1,5 @@
 // Service Workerの更新
-const CACHE_NAME = "bible-viewer-v2.0.0"; // バージョンを上げて古いキャッシュを破棄させる
+const CACHE_NAME = "bible-viewer-v2.0.1"; // バージョンを上げて古いキャッシュを破棄させる
 const urlsToCache = [
   "./",
   "./index.html",

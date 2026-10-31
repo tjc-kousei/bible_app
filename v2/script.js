@@ -3,12 +3,12 @@ const announcementConfig = {
   // このお知らせを有効にするか (true: 表示する, false: 表示しない)
   enabled: true,
   // このお知らせのユニークID (内容を変更したら、このIDも変更してください)
-  id: "version-update-20250915",
+  id: "latest-site-20261031",
   // お知らせのタイトル
-  title: "✨ アプリ更新のお知らせ",
+  title: "最新版のご案内",
   // お知らせの本文 (HTMLタグが使えます)
   message:
-    "新しいバージョンを公開しました。<br>データ読み込みの高速化と操作性の向上を行いました<br>中国語と日本語のルビ切り替えを独立させました<br>リンクはこちら→<a href='https://tjc-kousei.github.io/bible_app/v4/'>https://tjc-kousei.github.io/bible_app/v4/</a><br>また、こちらのバージョンから中国語拼音を削除しました。<br>更新：2025/09/15",
+    "いつもご利用ありがとうございます。<br>聖書アプリの最新版は、以下のサイトでご利用いただけます。<br><a href='https://bible.tjckousei.com'>https://bible.tjckousei.com</a><br>今後はこちらの最新版をご利用ください。<br>ブックマークに登録されている方は、新しいURLへの変更をお願いします。<br>更新：2026/10/31",
 };
 /* ▲▲▲ お知らせ機能設定 ▲▲▲ */
 
