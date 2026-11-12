@@ -656,7 +656,7 @@ function openQuestionModal(ref, lang, containerEl) {
 async function loadVerseQuestions(book, chapter) {
   try {
     const res = await fetch(
-      `https://runaaa0712.weblike.jp/church/bibleapp/get_questions.php?book=${encodeURIComponent(
+      `https://tjckousei.com/church/bibleapp/get_questions.php?book=${encodeURIComponent(
         book
       )}&chapter=${chapter}`
     );
@@ -691,7 +691,7 @@ async function loadVerseQuestions(book, chapter) {
 async function loadVerseQuestions(book, chapter) {
   try {
     const res = await fetch(
-      `https://runaaa0712.weblike.jp/church/bibleapp/get_questions.php?book=${book}&chapter=${chapter}`
+      `https://tjckousei.com/church/bibleapp/get_questions.php?book=${book}&chapter=${chapter}`
     );
     const questions = await res.json();
 
@@ -1129,7 +1129,7 @@ async function submitQuestion() {
 
   try {
     const response = await fetch(
-      "https://runaaa0712.weblike.jp/church/bibleapp/save_question.php",
+      "https://tjckousei.com/church/bibleapp/save_question.php",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
