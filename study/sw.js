@@ -19,7 +19,7 @@ self.addEventListener('install', (event) => {
 // フェッチ時の挙動 (Network First, フォールバックとして Cache)
 self.addEventListener('fetch', (event) => {
     // APIリクエストなどはキャッシュせず直接ネットワークへ
-    if (event.request.url.includes('runaaa0712.weblike.jp') || event.request.method !== 'GET') {
+    if ((event.request.url.includes('runaaa0712.weblike.jp') || event.request.url.includes('tjckousei.com/church/bibleapp/get_questions.php')) || event.request.method !== 'GET') {
         return;
     }
 
